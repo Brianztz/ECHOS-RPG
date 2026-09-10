@@ -13,12 +13,35 @@
     return normalized || 'PADRAO';
   }
 
+  function newMasterRoom() {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'ECHOS-';
+    for (let i = 0; i < 6; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
+    return code;
+  }
+
   function roomFromPage() {
     const params = new URLSearchParams(location.search);
     const fromUrl = params.get('mesa') || params.get('sala');
-    if (fromUrl) return normalizeRoom(fromUrl);
     const master = location.pathname.includes('/mestre');
-    return normalizeRoom(localStorage.getItem(master ? 'master_table_code' : 'player_table_code') || 'PADRAO');
+    const storageKey = master ? 'master_table_code' : 'player_table_code';
+
+    if (fromUrl) {
+      const room = normalizeRoom(fromUrl);
+      localStorage.setItem(storageKey, room);
+      return room;
+    }
+
+    const saved = localStorage.getItem(storageKey);
+    if (saved) return normalizeRoom(saved);
+
+    if (master) {
+      const room = newMasterRoom();
+      localStorage.setItem(storageKey, room);
+      return room;
+    }
+
+    return 'PADRAO';
   }
 
   class EchosSocket {
