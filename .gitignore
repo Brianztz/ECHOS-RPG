@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env
+.DS_Store
+Thumbs.db
+data/*.sqlite
+data/*.sqlite-*
+npm-debug.log*
