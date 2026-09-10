@@ -1,12 +1,14 @@
 {
-  "name": "ordem-paranormal-online",
-  "version": "1.0.1",
+  "name": "echos-rpg",
+  "version": "2.0.0",
   "private": true,
-  "description": "Servidor Node.js para conectar fichas de jogadores ao Escudo do Mestre em tempo real, usando SQLite nativo do Node.",
-  "main": "server.js",
+  "description": "ECHOS RPG — ficha e Escudo do Mestre em tempo real, preparados para Cloudflare Workers + Durable Objects.",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "wrangler dev",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "wrangler deploy --dry-run",
+    "start:node": "node server.js"
   },
   "engines": {
     "node": ">=22.5.0"
@@ -14,5 +16,8 @@
   "dependencies": {
     "express": "^4.21.2",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
   }
 }
