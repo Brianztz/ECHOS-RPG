@@ -1,175 +1,134 @@
-# Ordem Paranormal Online — Ficha + Escudo do Mestre
+# ECHOS RPG
 
-Sistema Node.js que conecta a ficha do jogador ao Escudo do Mestre em tempo real.
+Ficha de personagem + Escudo do Mestre de **Ordem Paranormal RPG v1.3**, com sincronização em tempo real.
 
-## O que já está funcionando
+A versão de produção foi preparada para **Cloudflare Workers + Durable Objects + WebSockets**. O servidor Node.js antigo continua no repositório apenas como fallback local.
 
-- criação de campanha pelo mestre;
-- código de sala de 7 caracteres;
-- token privado do mestre e token individual de cada jogador;
-- reconexão automática após fechar/reabrir a página;
-- jogadores online/offline no Escudo;
-- sincronização automática da ficha completa;
-- PV, SAN, PE, Radiação e condições visíveis no Escudo;
-- o mestre pode alterar PV, SAN, PE, Radiação e condições remotamente;
-- mensagens do mestre para o jogador;
-- envio de equipamentos diretamente para a ficha;
-- armas enviadas também entram na lista de armas da ficha e na maleta aguardando encaixe;
-- envio de rituais diretamente pelo Compêndio do Escudo;
-- envio de poderes/habilidades diretamente pelo Compêndio;
-- envio das pistas do quadro do mestre diretamente para a aba Pistas do jogador;
-- banco SQLite para guardar campanhas, jogadores, estado das fichas e eventos;
-- Socket.IO para atualização em tempo real.
+## Estrutura
 
-## Requisitos
+```text
+public/
+  index.html
+  jogador/index.html
+  mestre/index.html
+  shared/
+    player-live.js
+    gm-live.js
+    live.css
+  socket.io/socket.io.js   # camada compatível sobre WebSocket nativo
+src/
+  worker.mjs               # Worker + Durable Object da mesa
+wrangler.jsonc
+server.js                  # fallback Node.js local
+```
 
-- Node.js 20 ou superior.
-- npm.
+## Como a conexão funciona
 
-## Instalação
+Cada código de **MESA** corresponde a um Durable Object. Todas as fichas e o Escudo que usam o mesmo código entram na mesma sala.
 
-Abra um terminal dentro desta pasta e rode:
+O botão **Copiar link da ficha** produz um endereço como:
+
+```text
+https://SEU-DOMINIO/jogador?mesa=CODIGO-DA-MESA
+```
+
+Ao abrir esse link, a ficha já entra na mesa correta. Cada ficha mantém também um código próprio de 4 caracteres para que o servidor reconheça o mesmo personagem após reconexões.
+
+A interface continua usando os mesmos eventos criados durante o desenvolvimento (`master_ready`, `status_change`, `players_snapshot`, `update_mestre`, `player_disconnected`, `sync_requested` etc.). Em produção, `/socket.io/socket.io.js` fornece uma camada compatível sobre WebSocket nativo, então não foi necessário reescrever a ficha grande inteira.
+
+## O que funciona em tempo real
+
+- jogadores aparecem e desaparecem automaticamente no Escudo;
+- nome, retrato, NEX, Defesa, PV, SAN, PE e Radiação;
+- condições da ficha;
+- alterações de PV/SAN/PE/Radiação feitas pelo mestre;
+- mensagem privada do mestre;
+- envio de equipamentos;
+- armas enviadas entram na ficha e também aguardam encaixe na maleta;
+- envio de rituais e poderes pelo compêndio;
+- envio de pistas diretamente para a ficha;
+- reconexão automática do WebSocket;
+- persistência do estado da ficha por mesa;
+- fila curta para eventos do mestre quando uma ficha estiver temporariamente offline.
+
+## Persistência no Cloudflare
+
+O estado de cada mesa fica no armazenamento SQLite do seu Durable Object. Como a ficha é grande e pode conter imagens em base64, o JSON completo é dividido internamente em blocos menores antes de ser salvo. O retrato também é armazenado separadamente do índice dos jogadores.
+
+O Escudo continua salvando seus dados de interface/local de campanha no `localStorage` como antes; a parte compartilhada entre mestre e jogadores fica no Durable Object.
+
+## Cloudflare — deploy pelo GitHub
+
+O repositório contém `wrangler.jsonc`, então o caminho recomendado é conectar um **Cloudflare Worker com Builds** ao repositório GitHub `Brianztz/ECHOS-RPG`.
+
+Configuração:
+
+```text
+Branch de produção: main
+Build command: pode ficar vazio
+Deploy command: npx wrangler deploy
+Root directory: /
+```
+
+Depois disso, cada push/merge em `main` dispara um novo deploy automaticamente.
+
+O Worker serve tanto os arquivos estáticos quanto o backend WebSocket. As rotas principais são:
+
+```text
+/                 página inicial
+/mestre           Escudo do Mestre
+/jogador          ficha do jogador
+/api/health       teste do Worker
+/ws               WebSocket interno
+```
+
+## Desenvolvimento local com Cloudflare
+
+Com Node.js instalado:
 
 ```bash
 npm install
-npm start
+npm run dev
 ```
 
-Depois abra:
+O Wrangler inicia o mesmo Worker localmente, incluindo Durable Objects e os arquivos de `public/`.
 
-- Início: `http://localhost:3000`
-- Mestre: `http://localhost:3000/mestre`
-- Jogador: `http://localhost:3000/jogador`
+Para conferir a configuração antes de publicar:
 
-No Windows, você também pode executar `iniciar.bat`.
-
-## Jogando na mesma rede Wi‑Fi/LAN
-
-O servidor escuta em `0.0.0.0`, então outros computadores e celulares da mesma rede podem acessar.
-
-1. Descubra o IP do computador do mestre. No Windows, rode `ipconfig` e procure o IPv4, por exemplo `192.168.0.10`.
-2. No computador do mestre: `http://localhost:3000/mestre`.
-3. Nos dispositivos dos jogadores: `http://192.168.0.10:3000/jogador`.
-4. Se o Windows perguntar sobre Firewall, permita o Node.js em redes privadas.
-
-## Fluxo da campanha
-
-1. O mestre abre `/mestre` e cria uma Campanha Online.
-2. O Escudo mostra um código, como `AUR7K2Q`.
-3. Cada jogador abre `/jogador`, coloca o código, seu nome e personagem.
-4. A ficha começa a sincronizar automaticamente.
-5. O Escudo exibe os jogadores online e seus recursos.
-
-## Enviar equipamento
-
-Na aba **Equipamentos** do Escudo:
-
-1. abra/crie um equipamento;
-2. no final do popup, escolha um jogador conectado;
-3. clique em **Enviar ao jogador**.
-
-Na ficha, o equipamento entra na maleta em **Itens aguardando encaixe**. Se for arma, também é adicionada ao catálogo de armas da ficha.
-
-## Enviar ritual ou poder
-
-Na aba **Rituais & Poderes**:
-
-1. abra uma entrada do compêndio;
-2. escolha um jogador conectado;
-3. clique em **Enviar ritual** ou **Enviar poder**.
-
-A ficha procura o nome no catálogo interno e adiciona a entrada.
-
-## Enviar pistas
-
-Na aba **Pistas** do Escudo:
-
-1. crie pistas e defina a audiência normalmente;
-2. escolha um jogador em **Enviar pistas diretamente para um jogador conectado**;
-3. clique em **Enviar pistas liberadas**.
-
-A ficha recebe o pacote sem precisar importar JSON manualmente.
-
-## Banco de dados
-
-O arquivo é criado automaticamente em:
-
-```text
-data/ordem.sqlite
+```bash
+npm run check
 ```
 
-Tabelas principais:
+Para publicar manualmente:
 
-- `campaigns`
-- `players`
-- `player_states`
-- `events`
+```bash
+npm run deploy
+```
 
-Para fazer backup da campanha, copie o arquivo `ordem.sqlite` com o servidor desligado.
+## Fallback Node.js antigo
 
-## Segurança atual
+O `server.js` foi mantido para não perder o servidor que já funcionava localmente. Para usá-lo:
 
-O código da campanha serve para localizar a sala, mas não funciona como permissão administrativa. O mestre recebe um token aleatório separado e cada jogador recebe seu próprio token. Comandos de mestre são validados no servidor antes de serem enviados às fichas.
+```bash
+npm install
+npm run start:node
+```
 
-Este projeto foi pensado primeiro para uso local/LAN. Para publicar na internet, use HTTPS, proxy reverso e regras adicionais de autenticação/rate limit.
+Esse modo usa Express + Socket.IO + `node:sqlite`. Ele é apenas fallback; o deploy Cloudflare usa `src/worker.mjs`.
 
+## Escudo do Mestre
 
-## Se aparecer “localhost recusou a conexão”
+A primeira aba mostra somente os jogadores conectados. As abas visíveis atualmente são:
 
-Isso significa que o navegador abriu, mas o servidor Node.js ainda não está rodando.
+- Mesa
+- Investigação
+- Equipamentos
+- Rituais & Poderes
+- Pistas
+- Referência
 
-A versão corrigida do `iniciar.bat` primeiro inicia o servidor, espera `/api/health`
-responder e **só então abre o navegador**.
+As antigas abas Combate, Testes, Horror e Condições continuam ocultas e não fazem parte da navegação atual.
 
-Se ainda der erro:
+## Próximas alterações
 
-1. Não feche a janela `Ordem Online - Servidor`.
-2. Execute `diagnosticar.bat`.
-3. Se houver erro na janela do servidor, copie a mensagem completa.
-4. O endereço local recomendado é `http://127.0.0.1:3000`.
-
-
-
-## Correção para Node.js 24
-
-Esta versão não usa mais `better-sqlite3`, que precisava compilar um módulo nativo e estava falhando no Node.js 24 quando não havia Python/Build Tools instalados.
-
-Agora o projeto usa o módulo `node:sqlite` que já vem no próprio Node.js. Portanto, em Node.js 24 não é necessário instalar Python, Visual Studio Build Tools ou compilar SQLite.
-
-Se você tentou a versão anterior e ficou uma pasta `node_modules` incompleta, não há problema: o novo `iniciar.bat` executa `npm install` novamente e ajusta as dependências.
-
-
-## Primeira aba do mestre
-A primeira aba agora mostra somente os jogadores conectados automaticamente, no padrão visual do Escudo do Mestre do Outro Lado: retrato, personagem, jogador, NEX, Defesa, PV, SAN, PE, Radiação, condições e botão de gerenciamento.
-
-
-## Conexão automática por sala
-
-A conexão agora segue o mesmo fluxo simples usado no outro projeto:
-
-1. Abra `/mestre`.
-2. O Escudo cria ou recupera automaticamente uma mesa.
-3. Use **COPIAR LINK DA FICHA**.
-4. O link terá este formato: `/jogador?sala=CODIGO`.
-5. Quando o jogador abre o link, a ficha lê `?sala=...`, salva a sala e entra automaticamente.
-6. Nome do jogador e personagem são lidos diretamente da própria ficha.
-7. Alterações da ficha são enviadas automaticamente ao Escudo.
-8. Ao atualizar o navegador, Escudo e ficha recuperam a mesma conexão.
-9. O botão **SINCRONIZAR** do mestre pede imediatamente o estado de todas as fichas online.
-
-O servidor continua usando tokens internamente para evitar que um jogador assuma outra ficha, mas o jogador não precisa digitar ou conhecer esses tokens.
-
-
-## Conexão refeita no padrão de mestre.html / ficha.html
-
-- Mestre e jogador usam um código de **MESA**, com `PADRAO` como padrão.
-- O Mestre anuncia a mesa com `master_ready` e recebe `players_snapshot`.
-- Cada ficha tem um código próprio persistente de 4 caracteres.
-- A ficha envia seus dados com `status_change` sempre que salva/sincroniza.
-- O Escudo recebe as mudanças com `update_mestre`.
-- Ao fechar/desconectar uma ficha, o Escudo recebe `player_disconnected`.
-- O Mestre pode forçar um `sync_requested`.
-- Alterações do Mestre podem retornar à ficha por `player_data_updated`.
-- O link da ficha é `/jogador?mesa=CODIGO`.
-
-O SQLite foi mantido apenas como persistência. A conexão visível não exige cadastro, login ou token.
+A partir desta estrutura, mudanças de ficha, Escudo, pistas e conexão podem ser feitas diretamente no código do repositório. Não é mais necessário gerar e substituir ZIPs para cada alteração.
