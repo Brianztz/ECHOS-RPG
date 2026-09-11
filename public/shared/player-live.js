@@ -127,11 +127,12 @@
       caseItems.push({
         id: caseSequence++,
         name: String(item.name),
-        cat: item.type === 'weapon' ? 'ferramenta' : 'suprimento',
+        cat: item.ammo && item.type !== 'weapon' ? 'municao' : item.type === 'weapon' ? 'ferramenta' : 'suprimento',
         w,
         h: 1,
         load: Math.max(0, Number(item.load || 0)),
         desc: String(item.desc || [item.damage && `Dano ${item.damage}`, item.crit && `Crítico ${item.crit}`, item.range].filter(Boolean).join(' • ')),
+        catalogDetails: {damage:item.damage || '',crit:item.crit || '',range:item.range || '',skill:item.test || '',ammo:item.ammo || '',capacity:item.capacity,attacks:item.atk,image:item.img || ''},
         x: -1,
         y: -1
       });

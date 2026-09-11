@@ -238,10 +238,29 @@
     refreshLiveSelects();
   }
 
+  window.EchosEquipment = {
+    refreshRecipients: refreshLiveSelects,
+    send(playerId, item) {
+      return new Promise((resolve, reject) => {
+        if (!socket.connected) return reject(new Error('Servidor desconectado. Aguarde a reconexão.'));
+        if (!livePlayers.has(Number(playerId))) return reject(new Error('Este jogador saiu da mesa. Selecione um jogador conectado.'));
+        if (!String(item?.name || '').trim()) return reject(new Error('Informe o nome do equipamento.'));
+        const timer = setTimeout(() => reject(new Error('Não foi possível confirmar o envio. Confira o inventário antes de enviar novamente.')), 12000);
+        socket.emit('gm:send_event', {playerId:Number(playerId),type:'equipment',data:item}, result => {
+          clearTimeout(timer);
+          if (!result?.ok) return reject(new Error(result?.error || 'Não foi possível enviar o equipamento.'));
+          log(`${item.name} enviado ao inventário do jogador.`);
+          resolve(result);
+        });
+      });
+    }
+  };
+
   function sendCurrentEquipment() {
     const playerId = $('#liveEquipmentPlayer')?.value;
     if (!playerId) return alert('Selecione o jogador.');
     const item = {
+      ...JSON.parse($('#equipmentModal')?.dataset.catalogMetadata || '{}'),
       type: $('#equipmentType')?.value || 'item',
       name: ($('#equipmentName')?.value || '').trim(),
       category: ($('#equipmentCategory')?.value || '').trim(),
