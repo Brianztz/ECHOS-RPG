@@ -18,19 +18,16 @@
     const label=document.getElementById('activeWeapon');
     if(label){label.textContent=weapon ? weapon.name : 'Nenhuma arma equipada.';label.title=weapon ? [weapon.weapon.damage,weapon.weapon.crit,weapon.weapon.skill].filter(Boolean).join(' • ') : 'Selecione uma arma dentro da maleta para equipar.';}
     const status=document.getElementById('re4Active');if(status)status.textContent=weapon ? `Equipada: ${weapon.name}`:'Nenhuma arma equipada';
-    const picker=document.getElementById('re4WeaponPicker');
-    if(picker){
-      const previous=picker.value;picker.replaceChildren();
-      const available=caseItems.filter(x=>x.weapon&&inCase(x));
-      for(const item of available){const option=document.createElement('option');option.value=item.id;option.textContent=item.name;picker.appendChild(option);}
-      if(available.some(x=>String(x.id)===previous))picker.value=previous;
-      else if(weapon)picker.value=weapon.id;
-      document.getElementById('re4SheetEquip').disabled=!available.length;
-      document.getElementById('re4Attack').disabled=!weapon;
+    const attack=document.getElementById('re4Attack');
+    if(attack){
+      attack.disabled=!weapon;
       document.getElementById('re4Damage').disabled=!weapon?.weapon.damage;
-      document.getElementById('re4Attack').textContent=weapon?`Rolar ataque • ${weapon.weapon.skill}`:'Rolar ataque';
-      document.getElementById('re4Damage').textContent=weapon?`Rolar dano • ${weapon.weapon.damage||'não definido'}`:'Rolar dano';
-      document.getElementById('re4CombatInfo').textContent=weapon?`Crítico: ${weapon.weapon.crit||'—'} • Alcance: ${weapon.weapon.range||'—'}`:'Encaixe uma arma na maleta para equipar.';
+      attack.textContent='ATQ';
+      attack.title=weapon?'Rolar ataque • '+weapon.weapon.skill:'Equipe uma arma na maleta';
+      document.getElementById('re4Damage').textContent='DANO';
+      document.getElementById('re4Damage').title=weapon?'Rolar dano • '+weapon.weapon.damage:'Equipe uma arma na maleta';
+      document.getElementById('re4CombatInfo').textContent=weapon?[weapon.weapon.skill,weapon.weapon.damage,'Crítico '+(weapon.weapon.crit||'—'),weapon.weapon.range].filter(Boolean).join(' • '):'Equipe uma arma no inventário.';
+      document.getElementById('re4CombatButtons').hidden=!weapon;
     }
   }
   function equip(id){
@@ -88,9 +85,11 @@
   const activeLabel=document.getElementById('activeWeapon');
   if(activeLabel){
     const panel=document.createElement('div');panel.className='re4-combat';
-    panel.innerHTML='<label for="re4WeaponPicker">Armas na maleta</label><select id="re4WeaponPicker" aria-label="Arma para equipar"></select><button id="re4SheetEquip" type="button">Equipar arma</button><button id="re4Attack" type="button">Rolar ataque</button><button id="re4Damage" type="button">Rolar dano</button><small id="re4CombatInfo"></small><output id="re4DamageResult" aria-live="polite"></output>';
-    activeLabel.after(panel);
-    document.getElementById('re4SheetEquip').onclick=()=>{equip(Number(document.getElementById('re4WeaponPicker').value));renderCase();changed();};
+    const heading=activeLabel.previousElementSibling;
+    if(heading?.classList.contains('action-label'))heading.remove();
+    panel.innerHTML='<div class="re4-active-heading">Arma ativa</div><div class="re4-active-body"><div id="re4CombatButtons"><button id="re4Attack" type="button" aria-label="Rolar ataque da arma ativa">ATQ</button><button id="re4Damage" type="button" aria-label="Rolar dano da arma ativa">DANO</button></div><small id="re4CombatInfo"></small><output id="re4DamageResult" aria-live="polite"></output></div>';
+    activeLabel.before(panel);
+    panel.querySelector('.re4-active-body').prepend(activeLabel);
     document.getElementById('re4Attack').onclick=()=>{
       const item=caseItems.find(x=>x.weapon&&x.equipped&&inCase(x));if(!item)return;
       const index=SKILLS.findIndex(x=>x.toLowerCase()===item.weapon.skill.toLowerCase());
