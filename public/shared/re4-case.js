@@ -1,5 +1,7 @@
 (function () {
   'use strict';
+  const sheetTitle=document.querySelector('header.top .brand h1');
+  if(sheetTitle)sheetTitle.textContent='ECHOS RPG';
   const model=window.RE4Weapons;
   const originalRender=renderCase,originalCollect=collect,originalLoad=loadCaseItems,originalCalc=calc,originalSelect=selectCaseItem;
   const originalShowRoll=showAnimatedRoll,originalCloseRoll=closeSkillRoll;
