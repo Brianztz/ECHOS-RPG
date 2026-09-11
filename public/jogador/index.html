@@ -4406,6 +4406,7 @@ h3,
 </style>
 
 <link rel="stylesheet" href="/shared/live.css">
+<link rel="stylesheet" href="/shared/re4-case.css">
 </head>
 <body><main class="app">
 <header class="top"><div class="brand"><small>Arquivo confidencial / Documento de agente</small><h1>ORDEM PARANORMAL</h1><div class="dossier-line"><span>Organização <b>Ordo Realitas</b></span><span>Protocolo <b>OPR–13</b></span><span>Acesso <b>Nível Ômega</b></span></div></div><div class="toolbar"><button onclick="save()">Salvar ficha</button><button onclick="exportData()">Exportar arquivo</button><label class="filebtn">Importar arquivo<input id="import" type="file" accept="application/json" hidden></label><button onclick="window.print()">Imprimir / PDF</button><button onclick="resetAll()">Limpar</button></div></header>
@@ -5518,5 +5519,8 @@ document.querySelectorAll('#powerCatalogSearch,#powerCatalogClass,#powerCatalogT
 updateTrails();['weapons','armor'].forEach(id=>addRow(id,{weapons:'weapon',armor:'armor'}[id]));renderCase();let stored=localStorage.getItem('op-ficha-v13');if(stored)try{hydrate(JSON.parse(stored))}catch{}else{reconcileInitialGrants();updateRitualSummary()}refreshPortrait();calc();refreshClueCurrentPlayerPreview();refreshClueLegend();if(!stored)loadClueBoardState({});else requestAnimationFrame(()=>{renderClueLines();refreshClueCurrentPlayerPreview();refreshClueLegend()});
 </script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="/shared/equipment-catalog-data.js"></script>
+<script src="/shared/re4-weapons.js"></script>
+<script src="/shared/re4-case.js"></script>
 <script src="/shared/player-live.js"></script>
 </body></html>

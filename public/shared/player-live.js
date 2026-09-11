@@ -125,7 +125,8 @@
     if (typeof caseItems !== 'undefined' && typeof caseSequence !== 'undefined') {
       const w = Math.max(1, Math.min(6, Number(item.spaces || 1)));
       caseItems.push({
-        id: caseSequence++,
+          id: caseSequence++,
+          type: item.type,
         name: String(item.name),
         cat: item.ammo && item.type !== 'weapon' ? 'municao' : item.type === 'weapon' ? 'ferramenta' : 'suprimento',
         w,
