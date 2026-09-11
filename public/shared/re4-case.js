@@ -77,9 +77,17 @@
     }
     updateActive();
   }
-  renderCase=function(){if(!restoring)reconcile();originalRender();decorate();};
+  function fitCase(){
+    const grid=document.getElementById('caseGrid'),shell=grid?.closest('.case-shell');if(!shell||!shell.clientWidth)return;
+    const style=getComputedStyle(shell),gs=getComputedStyle(grid),cols=caseDimensions().cols;
+    const available=shell.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+    const inset=parseFloat(gs.paddingLeft)+parseFloat(gs.paddingRight)+parseFloat(gs.borderLeftWidth)+parseFloat(gs.borderRightWidth);
+    const gap=parseFloat(gs.columnGap)||2;
+    grid.style.setProperty('--case-cell',`${Math.max(20,Math.floor((available-inset-gap*(cols-1))/cols))}px`);
+  }
+  renderCase=function(){if(!restoring)reconcile();originalRender();decorate();fitCase();};
   calc=function(){originalCalc();updateActive();};
-  selectCaseItem=function(id,event){originalSelect(id,event);const item=caseItems.find(x=>x.id===id);if(item?.weapon&&inCase(item)){equip(id);renderCase();changed();}};
+  selectCaseItem=function(id,event){originalSelect(id,event);};
   collect=function(){const data=originalCollect();data.lists.inventory=data.lists.inventory.map((row,index)=>({...row,...model.serialize(caseItems[index])}));return data;};
   loadCaseItems=function(rows=[]){
     restoring=true;try{originalLoad(rows);}finally{restoring=false;}
@@ -117,12 +125,14 @@
   }
   if(header){
     const note=document.createElement('div');note.className='re4-guide';
-    note.innerHTML='<strong id="re4Active"></strong><span>Arraste para organizar • R ou Girar para rotacionar • Selecione uma arma encaixada para equipar</span>';
+    note.innerHTML='<strong id="re4Active"></strong><span>Arraste para organizar • R ou Girar para rotacionar • Selecione para ver detalhes e use Equipar arma</span>';
     header.after(note);
   }
   // Recupera os campos extras antes perdidos pelo carregador antigo, sem alterar a ficha.
   try{const saved=JSON.parse(localStorage.getItem('op-ficha-v13')||'null');if(Array.isArray(saved?.lists?.inventory)){caseItems.forEach((item,index)=>model.restore(item,saved.lists.inventory[index]));}}catch{}
   renderCase();
+  const caseShell=document.querySelector('.case-shell');
+  if(caseShell)new ResizeObserver(fitCase).observe(caseShell);
   // Toque: arraste o item para a grade ou selecione e toque numa célula livre.
   let touch=null;
   document.addEventListener('pointerdown',event=>{
