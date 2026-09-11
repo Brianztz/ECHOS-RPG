@@ -1,3 +1,27 @@
 .re4-guide{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:10px 12px;margin:0 0 14px;border:1px solid #596357;background:#111b16;color:#bac5b4;font:500 10px/1.5 'IBM Plex Mono',monospace}.re4-guide strong{color:#e8dfa0}.re4-controls{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.re4-controls button{min-height:34px!important;font-size:9px!important}.re4-controls [hidden]{display:none!important}#re4WeaponInfo{grid-column:1/-1;font:500 10px/1.6 'IBM Plex Mono',monospace;color:#d0d7c9}#re4Equip{grid-column:1/-1;border-color:#c3bd9b!important}.re4-controls button:disabled{opacity:.45;cursor:not-allowed}.case-item.re4-weapon{touch-action:none;position:relative;background:linear-gradient(145deg,#465448,#19271e)!important;border:2px solid #87947c!important;overflow:hidden}.case-item.re4-weapon.selected{border-color:#f0d900!important}.case-item.re4-equipped{box-shadow:inset 0 0 0 1px #9eaa72,0 0 10px #819b6244!important}.case-item .re4-weapon-art{position:absolute;inset:0;width:100%;height:100%;padding:5px;object-fit:contain;pointer-events:none;filter:drop-shadow(0 3px 4px #000);z-index:0}.case-item .re4-weapon-art.vertical{transform:rotate(90deg) scale(.85)}.case-item.re4-has-image .case-item-icon{display:none}.case-item.re4-weapon strong{position:absolute;left:3px;right:3px;bottom:2px;padding:3px;background:#071009d9;font:700 8px/1.15 'IBM Plex Mono',monospace;text-shadow:0 1px #000;z-index:2}.case-item.re4-weapon small{display:none}.case-item .re4-equipped-badge{position:absolute;left:3px;top:3px;right:auto;bottom:auto;font:700 6px/1 'IBM Plex Mono',monospace;font-style:normal;background:#d1c785;color:#142018;padding:3px;z-index:3}.re4-drop-valid{outline:2px solid #91bd70!important}.re4-weapon:focus-visible{outline:2px solid #f0d900;outline-offset:2px}
 .actions-card>.re4-combat{grid-column:3/5;min-width:0;margin:0;align-self:start}.re4-active-heading{text-align:center;text-transform:uppercase;font-weight:800;font-size:10px;border:1px solid #4d574b;background:#172019;padding:7px;margin-bottom:9px}.re4-active-body{background:#101811db;border:1px solid #46503f;border-radius:7px;padding:10px;display:grid;gap:9px;text-align:center}.re4-active-body>#activeWeapon{display:block!important;margin:0!important;border:1px solid #b8b77c;border-radius:4px;color:#e0d998;padding:9px 5px;font-size:12px;line-height:1.35;overflow-wrap:anywhere}#re4CombatButtons{display:flex;gap:8px}#re4CombatButtons[hidden]{display:none}#re4CombatButtons button{flex:1;min-width:0;min-height:34px;padding:5px!important;font-size:11px!important;font-weight:800!important;white-space:nowrap}#re4Attack{border-color:#8daec0!important;color:#b4d5e7!important}#re4Damage{border-color:#ab6966!important;color:#e49a94!important}.re4-active-body small{font-size:9px;line-height:1.6;color:#b5bdac}.re4-active-body output{font-size:11px;color:#eee2a5}.re4-active-body output:empty{display:none}@media(max-width:700px){.actions-card>.re4-combat{grid-column:1/-1}}#rollModal.re4-damage-roll #rollRule,#rollModal.re4-damage-roll #rollDetail{display:none!important}
 header.top .brand small,header.top .dossier-line,header.top .toolbar,header.top .brand h1::after,header.top::before,header.top::after{display:none!important}header.top{min-height:48px!important;padding:12px 16px!important}header.top .brand h1{margin:0!important;font-size:27px!important}
+
+/* Escala de leitura maior, preservando as coordenadas da maleta. */
+.app{max-width:1800px!important;padding-left:20px;padding-right:20px}
+.card h2{font-size:19px!important}
+.tabs button{font-size:13px!important;min-height:54px!important}
+.identity-fields label{font-size:12px!important}
+.identity-fields input,.identity-fields select{font-size:15px!important;min-height:44px!important}
+.skills-card .skill{min-height:108px!important;padding:10px!important;gap:9px!important}
+.skills-card .skillName{font-size:12px!important;min-height:24px!important;white-space:normal!important;line-height:1.3!important}
+.skills-card .skill>small{font-size:10px!important;line-height:1.4!important}
+.skills-card .skillRoll{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;font-size:14px!important}
+.attributes-card .attr{min-height:100px!important}
+.attributes-card .attr label{font-size:12px!important}
+.attributes-card .attr input{font-size:30px!important}
+.actions-card .action-label,.re4-active-heading{font-size:12px!important}
+.re4-active-body>#activeWeapon{font-size:15px!important}
+#re4CombatButtons button{font-size:13px!important;min-height:40px!important}
+.re4-active-body small{font-size:11px!important}
+.actions-powers-head>span{font-size:11px!important}
+.actions-card #powers .power-card-main{font-size:12px!important;min-height:86px!important}
+.re4-guide,.re4-controls button,#re4WeaponInfo{font-size:12px!important}
+@media(min-width:1101px){.dashboard-grid{grid-template-columns:155px repeat(8,minmax(0,1fr)) 205px!important;gap:16px!important}}
+@media(max-width:760px){.app{padding-left:10px;padding-right:10px}.skills-card .skills{grid-template-columns:repeat(2,minmax(0,1fr))!important}.identity-fields input,.identity-fields select{font-size:16px!important}}
+@media(max-width:380px){.skills-card .skills{grid-template-columns:1fr!important}}
