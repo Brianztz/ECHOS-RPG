@@ -2,6 +2,9 @@
   'use strict';
   const model=window.RE4Weapons;
   const originalRender=renderCase,originalCollect=collect,originalLoad=loadCaseItems,originalCalc=calc,originalSelect=selectCaseItem;
+  const originalShowRoll=showAnimatedRoll,originalCloseRoll=closeSkillRoll;
+  showAnimatedRoll=function(...args){document.getElementById('rollModal').classList.remove('re4-damage-roll');return originalShowRoll(...args);};
+  closeSkillRoll=function(){originalCloseRoll();document.getElementById('rollModal').classList.remove('re4-damage-roll');};
   const inCase=item=>item.x>=0&&item.y>=0&&caseItemInsideCapacity(item);
   let restoring=false;
   function reconcile(){
@@ -104,7 +107,10 @@
       if(!match||+match[1]<1||+match[1]>50||+match[2]<2){output.textContent='Dano não rolável: use uma fórmula como 2d6+3.';return;}
       const dice=Array.from({length:+match[1]},()=>1+Math.floor(Math.random()*+match[2]));
       const bonus=+(match[3]||0),total=dice.reduce((a,b)=>a+b,bonus);
-      output.textContent=`${item.name} • Dano ${formula}: ${total} (${dice.join(' + ')}${bonus?` ${bonus>0?'+':'−'} ${Math.abs(bonus)}`:''})`;
+      output.textContent='';
+      currentRollContext=null;
+      showAnimatedRoll(item.name,'',[total],0,0);
+      document.getElementById('rollModal').classList.add('re4-damage-roll');
     };
   }
   if(header){
