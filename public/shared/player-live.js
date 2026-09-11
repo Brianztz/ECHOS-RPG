@@ -70,6 +70,8 @@
     panel.id='livePlayerPanel';panel.className='live-panel live-reference-connection';
     panel.innerHTML=`<div class="live-reference-left"><span id="livePlayerDot" class="live-dot offline"></span><div><strong id="livePlayerStatus">Conectando ao servidor...</strong><small>CÓDIGO DA FICHA: <b id="displayLivePlayerCode">${esc(playerCode)}</b></small></div></div><button class="live-table-selector" type="button" onclick="choosePlayerTable()">MESA: <span id="displayLiveTableCode">${esc(tableCode)}</span></button>`;
     document.querySelector('.top')?.insertAdjacentElement('afterend',panel);
+    const header=document.querySelector('header.top');
+    if(header)header.appendChild(panel.querySelector('.live-table-selector'));
     updateTableUI();
   }
   function scheduleSync(delay=650){

@@ -25,3 +25,4 @@ header.top .brand small,header.top .dossier-line,header.top .toolbar,header.top 
 @media(min-width:1101px){.dashboard-grid{grid-template-columns:155px repeat(8,minmax(0,1fr)) 205px!important;gap:16px!important}}
 @media(max-width:760px){.app{padding-left:10px;padding-right:10px}.skills-card .skills{grid-template-columns:repeat(2,minmax(0,1fr))!important}.identity-fields input,.identity-fields select{font-size:16px!important}}
 @media(max-width:380px){.skills-card .skills{grid-template-columns:1fr!important}}
+header.top .brand{margin-right:0!important}header.top{gap:16px!important}header.top>.live-table-selector{flex:0 0 auto;margin:0;min-height:36px}header.top+#livePlayerPanel{min-height:0;padding-top:8px;padding-bottom:8px}
