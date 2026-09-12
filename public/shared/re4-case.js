@@ -5,6 +5,8 @@
   const model=window.RE4Weapons;
   const originalRender=renderCase,originalCollect=collect,originalLoad=loadCaseItems,originalCalc=calc,originalSelect=selectCaseItem;
   const originalShowRoll=showAnimatedRoll,originalCloseRoll=closeSkillRoll;
+  const originalCaseMetrics=caseGridMetrics;
+  caseGridMetrics=function(){const metrics=originalCaseMetrics();const height=parseFloat(getComputedStyle(metrics.grid).getPropertyValue('--case-cell-height'))||metrics.cell;return {...metrics,stepY:height+metrics.gapY};};
   showAnimatedRoll=function(...args){document.getElementById('rollModal').classList.remove('re4-damage-roll');return originalShowRoll(...args);};
   closeSkillRoll=function(){originalCloseRoll();document.getElementById('rollModal').classList.remove('re4-damage-roll');};
   const inCase=item=>item.x>=0&&item.y>=0&&caseItemInsideCapacity(item);
@@ -84,6 +86,9 @@
     const inset=parseFloat(gs.paddingLeft)+parseFloat(gs.paddingRight)+parseFloat(gs.borderLeftWidth)+parseFloat(gs.borderRightWidth);
     const gap=parseFloat(gs.columnGap)||2;
     grid.style.setProperty('--case-cell',`${Math.max(20,Math.floor((available-inset-gap*(cols-1))/cols))}px`);
+    const width=parseFloat(grid.style.getPropertyValue('--case-cell'));
+    grid.style.setProperty('--case-cell-height',`${Math.min(width,80)}px`);
+    grid.style.gridTemplateRows=`repeat(${caseDimensions().rows},var(--case-cell-height))`;
   }
   renderCase=function(){if(!restoring)reconcile();originalRender();decorate();fitCase();};
   calc=function(){originalCalc();updateActive();};
