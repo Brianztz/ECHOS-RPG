@@ -2,6 +2,12 @@
   'use strict';
   const sheetTitle=document.querySelector('header.top .brand h1');
   if(sheetTitle)sheetTitle.textContent='ECHOS RPG';
+  const cluesTab=document.querySelector('.clue-tab');
+  if(cluesTab){
+    const miro=document.createElement('article');miro.className='card echos-miro-card';
+    miro.innerHTML='<div class="echos-miro-head"><h2>Pistas</h2><a href="https://miro.com/app/board/uXjVHnvk6fY=/" target="_blank" rel="noopener noreferrer">Abrir no Miro ↗</a></div><iframe title="Quadro de pistas compartilhado no Miro" src="https://miro.com/app/live-embed/uXjVHnvk6fY=/?autoplay=true" loading="lazy" allow="fullscreen" allowfullscreen></iframe><p class="hint">Use sua conta do Miro se o quadro solicitar acesso.</p>';
+    cluesTab.prepend(miro);
+  }
   const model=window.RE4Weapons;
   const originalRender=renderCase,originalCollect=collect,originalLoad=loadCaseItems,originalCalc=calc,originalSelect=selectCaseItem;
   const originalShowRoll=showAnimatedRoll,originalCloseRoll=closeSkillRoll;
