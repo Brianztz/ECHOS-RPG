@@ -284,23 +284,10 @@
   }
 
   function injectClueSendBox() {
-    const tab = document.querySelector('.tab[data-tab="pistas"]');
-    const card = tab?.querySelector('.card');
-    if (!card || card.querySelector('#liveClueSendBox')) return;
-    const box = document.createElement('div');
-    box.id = 'liveClueSendBox';
-    box.className = 'live-send-box';
-    box.innerHTML = `<label>Enviar pistas diretamente para um jogador conectado</label><div class="live-send-row"><select data-live-player-select id="liveCluePlayer"></select><button class="primary" type="button" id="liveClueSendButton">Enviar pistas liberadas</button></div><p class="hint" id="liveClueSendHint">O servidor envia somente para a ficha escolhida; o jogador não precisa importar JSON.</p>`;
-    const notice = card.querySelector('.notice');
-    notice?.insertAdjacentElement('afterend',box);
-    $('#liveClueSendButton')?.addEventListener('click', sendCluesLive);
-    const miroButton=document.createElement('button');miroButton.type='button';miroButton.className='primary';miroButton.textContent='Enviar pistas públicas ao Miro';
-    const miroStatus=document.createElement('p');miroStatus.className='hint';miroStatus.setAttribute('role','status');miroStatus.textContent='As pistas para Todos serão publicadas no quadro compartilhado. Reenvios atualizam as pistas existentes.';
-    box.append(miroButton,miroStatus);
-    miroButton.onclick=async()=>{
+    window.sendClueToMiro=async(id,miroButton,miroStatus)=>{
       if(!socket.connected){miroStatus.textContent='Conecte-se à mesa antes de enviar.';return;}
-      const nodes=(state.gmClues?.nodes||[]).filter(n=>Array.isArray(n.audience)&&n.audience.includes('all'));
-      if(!nodes.length){miroStatus.textContent='Nenhuma pista marcada para Todos.';return;}
+      const nodes=(state.gmClues?.nodes||[]).filter(n=>n.id===id && Array.isArray(n.audience)&&n.audience.includes('all'));
+      if(!nodes.length){miroStatus.textContent='Para enviar ao quadro compartilhado, edite esta pista e marque o público como Todos.';return;}
       miroButton.disabled=true;miroStatus.textContent='Enviando ao Miro...';
       try{
         const illustrated=[];
@@ -312,10 +299,10 @@
           context.fillStyle='#f3eedb';context.font='bold 28px sans-serif';context.textAlign='center';context.textBaseline='middle';context.fillText(String(node.title),canvas.width/2,picture.naturalHeight+35,canvas.width-30);
           illustrated.push({...node,image:canvas.toDataURL('image/jpeg',.85)});
         }
-        socket.emit('gm:publish_clues',{nodes:illustrated},res=>{miroButton.disabled=false;miroStatus.textContent=res?.ok?`${res.sent} imagem(ns) enviadas com nome; ${res.skipped} já estavam atualizadas.`:res?.error||'Falha ao enviar ao Miro.';});
+        socket.emit('gm:publish_clues',{nodes:illustrated},res=>{miroButton.disabled=false;miroStatus.textContent=res?.ok?(res.sent?'Pista enviada ao Miro.':'Esta pista já está atualizada no Miro.'):res?.error||'Falha ao enviar ao Miro.';});
       }catch(error){miroButton.disabled=false;miroStatus.textContent=error.message||'Não foi possível preparar a imagem.';}
     };
-    refreshLiveSelects();
+
   }
 
   function sendCluesLive() {
@@ -382,8 +369,8 @@
 })();
 (function(){
   const tab=document.querySelector('.tab[data-tab="pistas"]');if(!tab)return;
-  const style=document.createElement('style');style.textContent='.tab[data-tab="pistas"] #gmClueViewport,.tab[data-tab="pistas"] .clue-tools button:not(:first-child),.tab[data-tab="pistas"] .span4,.tab[data-tab="pistas"] .span8{display:none!important}.gm-clue-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-top:18px}.gm-clue-tile{padding:12px;border:1px solid #64715d;background:#17221b;border-radius:7px;text-align:left}.gm-clue-tile img{width:100%;height:150px;object-fit:contain;background:#0b110d;margin-bottom:8px}.gm-clue-tile strong{display:block;font-size:16px}.gm-clue-tile p{white-space:pre-wrap;color:#c4cdbb}.gm-clue-preview{max-width:100%;max-height:220px;object-fit:contain}.gm-clue-preview[hidden]{display:none}';document.head.appendChild(style);
-  tab.querySelector('.section-head .hint').textContent='Adicione uma pista com imagem, nome e informações. Abra uma pista para editar.';
+  const style=document.createElement('style');style.textContent='.tab[data-tab="pistas"] #gmClueViewport,.tab[data-tab="pistas"] .clue-tools button:not(:first-child),.tab[data-tab="pistas"] .span4,.tab[data-tab="pistas"] .span8{display:none!important}.gm-clue-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-top:18px}.gm-clue-tile{padding:12px;border:1px solid #64715d;background:#17221b;border-radius:7px;text-align:left}.gm-clue-tile img{width:100%;height:150px;object-fit:contain;background:#0b110d;margin-bottom:8px}.gm-clue-tile strong{display:block;font-size:16px}.gm-clue-tile p{white-space:pre-wrap;color:#c4cdbb}.gm-clue-open{display:block;width:100%;border:0;padding:0;background:transparent;text-align:left;text-transform:none}.gm-clue-open:focus-visible{outline:2px solid #e3d856;outline-offset:4px}.gm-clue-actions[hidden]{display:none}.gm-clue-actions{margin-top:12px}.gm-clue-actions button{margin:3px}.gm-clue-preview{max-width:100%;max-height:220px;object-fit:contain}.gm-clue-preview[hidden]{display:none}';document.head.appendChild(style);
+  tab.querySelector('.section-head .hint').textContent='Adicione uma pista com imagem, nome e informações. Clique em uma pista para ver as opções e enviar ao Miro.';
   const gallery=document.createElement('div');gallery.className='gm-clue-list';tab.querySelector('.card').appendChild(gallery);
   const fields=document.querySelector('#clueModal .fields');
   const upload=document.createElement('div');upload.className='field full';upload.innerHTML='<label for="gmClueImageFile">Imagem da pista</label><input id="gmClueImageFile" type="file" accept="image/png,image/jpeg,image/webp"><img class="gm-clue-preview" id="gmClueImagePreview" alt="Prévia da pista" hidden><button type="button" id="gmClueImageRemove">Remover imagem</button><small id="gmClueImageStatus" role="status"></small>';fields.prepend(upload);
@@ -395,6 +382,23 @@
   const oldOpen=openClueModal,oldSave=saveGMClue,oldRender=renderGMClues;
   openClueModal=function(id=null){oldOpen(id);imageData=state.gmClues.nodes.find(n=>n.id===id)?.image||'';input.value='';status.textContent='';refresh();};
   saveGMClue=function(){if(reading){status.textContent='Aguarde o carregamento da imagem.';return;}if(!byId('clueTitle').value.trim())return oldSave();const id=gmClueEditing;oldSave();const item=id?state.gmClues.nodes.find(n=>n.id===id):state.gmClues.nodes.at(-1);if(item)item.image=imageData;autosave();renderGMClues();};
-  renderGMClues=function(){oldRender();gallery.replaceChildren();for(const node of state.gmClues.nodes){const card=document.createElement('article');card.className='gm-clue-tile';if(node.image){const img=document.createElement('img');img.src=node.image;img.alt=node.title;card.appendChild(img);}const name=document.createElement('strong');name.textContent=node.title;const desc=document.createElement('p');desc.textContent=node.desc;const edit=document.createElement('button');edit.type='button';edit.textContent='Editar pista';edit.onclick=()=>openClueModal(node.id);const remove=document.createElement('button');remove.type='button';remove.textContent='Excluir';remove.onclick=()=>removeGMClue(node.id);card.append(name,desc,edit,remove);gallery.appendChild(card);}};
+  renderGMClues=function(){
+    oldRender();gallery.replaceChildren();
+    for(const node of state.gmClues.nodes){
+      const card=document.createElement('article');card.className='gm-clue-tile';
+      const trigger=document.createElement('button');trigger.type='button';trigger.className='gm-clue-open';trigger.setAttribute('aria-expanded','false');
+      if(node.image){const img=document.createElement('img');img.src=node.image;img.alt='';trigger.appendChild(img);}
+      const name=document.createElement('strong');name.textContent=node.title;trigger.appendChild(name);
+      const actions=document.createElement('div');actions.className='gm-clue-actions';actions.hidden=true;
+      trigger.onclick=()=>{const opening=actions.hidden;for(const tile of gallery.children){tile.querySelector('.gm-clue-actions').hidden=true;tile.querySelector('.gm-clue-open').setAttribute('aria-expanded','false');}actions.hidden=!opening;trigger.setAttribute('aria-expanded',String(opening));};
+      const desc=document.createElement('p');desc.textContent=node.desc;
+      const send=document.createElement('button');send.type='button';send.className='primary';send.textContent='Enviar para o Miro';
+      const status=document.createElement('p');status.className='hint';status.setAttribute('role','status');
+      send.onclick=()=>{if(window.sendClueToMiro)window.sendClueToMiro(node.id,send,status);else status.textContent='Aguarde a conexão com a mesa.';};
+      const edit=document.createElement('button');edit.type='button';edit.textContent='Editar';edit.onclick=()=>openClueModal(node.id);
+      const remove=document.createElement('button');remove.type='button';remove.textContent='Excluir';remove.onclick=()=>removeGMClue(node.id);
+      actions.append(desc,send,status,edit,remove);card.append(trigger,actions);gallery.appendChild(card);
+    }
+  };
   renderGMClues();
 })();
