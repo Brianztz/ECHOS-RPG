@@ -407,6 +407,8 @@
 (function(){
   const style=document.createElement('style');
   style.textContent=`
+    .tab[data-tab="equipamentos"] > .tab-organizer,
+    .tab[data-tab="equipamentos"] > .gm-tab-overview {display:none!important}
     .tab[data-tab="pistas"] > .tab-organizer,
     .tab[data-tab="pistas"] > .gm-tab-overview,
     .tab[data-tab="pistas"] .gm-card-summary,
