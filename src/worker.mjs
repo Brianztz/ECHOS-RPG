@@ -1,3 +1,4 @@
+import { publishClues } from './miro-clues.mjs';
 const MAX_SHEET_CHARS = 6_000_000;
 const CHUNK_CHARS = 350_000;
 const MAX_PENDING_EVENTS = 30;
@@ -498,6 +499,14 @@ export class GameRoom {
         this.broadcast('update_mestre', player, x => x.role === 'gm');
         this.broadcast('gm:player_sheet', player, x => x.role === 'gm');
         return { ok: true, player };
+      }
+
+      case 'gm:publish_clues': {
+        if(meta.role!=='gm')return {ok:false,error:'Ação exclusiva do mestre.'};
+        if(this.miroBusy)return {ok:false,error:'Já existe um envio em andamento.'};
+        this.miroBusy=true;
+        try{return await publishClues(this.env,this.ctx.storage,payload.nodes);}
+        finally{this.miroBusy=false;}
       }
 
       case 'gm:send_event': {

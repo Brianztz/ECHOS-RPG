@@ -294,6 +294,16 @@
     const notice = card.querySelector('.notice');
     notice?.insertAdjacentElement('afterend',box);
     $('#liveClueSendButton')?.addEventListener('click', sendCluesLive);
+    const miroButton=document.createElement('button');miroButton.type='button';miroButton.className='primary';miroButton.textContent='Enviar pistas públicas ao Miro';
+    const miroStatus=document.createElement('p');miroStatus.className='hint';miroStatus.setAttribute('role','status');miroStatus.textContent='As pistas para Todos serão publicadas no quadro compartilhado. Reenvios atualizam as pistas existentes.';
+    box.append(miroButton,miroStatus);
+    miroButton.onclick=()=>{
+      if(!socket.connected){miroStatus.textContent='Conecte-se à mesa antes de enviar.';return;}
+      const nodes=(state.gmClues?.nodes||[]).filter(n=>Array.isArray(n.audience)&&n.audience.includes('all'));
+      if(!nodes.length){miroStatus.textContent='Nenhuma pista marcada para Todos.';return;}
+      miroButton.disabled=true;miroStatus.textContent='Enviando ao Miro...';
+      socket.emit('gm:publish_clues',{nodes},res=>{miroButton.disabled=false;miroStatus.textContent=res?.ok?`${res.sent} pista(s) publicadas; ${res.skipped} já estavam atualizadas.`:res?.error||'Falha ao enviar ao Miro.';});
+    };
     refreshLiveSelects();
   }
 
