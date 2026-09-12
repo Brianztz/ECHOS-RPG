@@ -82,7 +82,9 @@
   function fitCase(){
     const grid=document.getElementById('caseGrid'),shell=grid?.closest('.case-shell');if(!shell||!shell.clientWidth)return;
     const style=getComputedStyle(shell),gs=getComputedStyle(grid),cols=caseDimensions().cols;
-    const available=shell.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+    const panel=document.getElementById('caseItemInfoPanel');
+    const sidePanel=panel&&!panel.hidden&&getComputedStyle(panel).position==='static'&&window.innerWidth>1000;
+    const available=shell.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)-(sidePanel?panel.getBoundingClientRect().width+(parseFloat(style.columnGap)||0):0);
     const inset=parseFloat(gs.paddingLeft)+parseFloat(gs.paddingRight)+parseFloat(gs.borderLeftWidth)+parseFloat(gs.borderRightWidth);
     const gap=parseFloat(gs.columnGap)||2;
     grid.style.setProperty('--case-cell',`${Math.max(20,Math.floor((available-inset-gap*(cols-1))/cols))}px`);
