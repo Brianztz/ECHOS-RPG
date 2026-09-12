@@ -87,7 +87,7 @@
     const gap=parseFloat(gs.columnGap)||2;
     grid.style.setProperty('--case-cell',`${Math.max(20,Math.floor((available-inset-gap*(cols-1))/cols))}px`);
     const width=parseFloat(grid.style.getPropertyValue('--case-cell'));
-    grid.style.setProperty('--case-cell-height',`${Math.min(width,80)}px`);
+    grid.style.setProperty('--case-cell-height',`${width}px`);
     grid.style.gridTemplateRows=`repeat(${caseDimensions().rows},var(--case-cell-height))`;
   }
   renderCase=function(){if(!restoring)reconcile();originalRender();decorate();fitCase();};

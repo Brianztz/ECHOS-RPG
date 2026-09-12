@@ -30,3 +30,4 @@ header.top .brand{margin-right:0!important}header.top{gap:16px!important}header.
 #livePlayerPanel{display:none!important}
 @media(min-width:761px){.case-layout>.case-shell{width:90%!important;justify-self:center;margin-inline:auto!important}}
 .case-layout>.case-shell{width:100%!important;justify-self:stretch!important;margin-inline:0!important}.case-shell .case-cell{height:var(--case-cell-height,46px)!important}
+.case-layout>.case-shell{width:100%!important;max-width:900px!important;justify-self:center!important;margin-inline:auto!important}.case-shell #caseGrid{aspect-ratio:auto}.case-item .re4-weapon-art{padding:8px}
