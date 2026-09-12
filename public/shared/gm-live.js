@@ -402,3 +402,19 @@
   };
   renderGMClues();
 })();
+
+// Keep the clues screen focused on creation and the saved clues.
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    .tab[data-tab="pistas"] > .tab-organizer,
+    .tab[data-tab="pistas"] > .gm-tab-overview,
+    .tab[data-tab="pistas"] .gm-card-summary,
+    .tab[data-tab="pistas"] .section-head > div:first-child,
+    .tab[data-tab="pistas"] .notice {display:none!important}
+    .tab[data-tab="pistas"] .gm-card-body {display:block!important}
+    .tab[data-tab="pistas"] .section-head {justify-content:flex-end}
+    .tab[data-tab="pistas"] .gm-clue-list {margin-top:14px}
+  `;
+  document.head.appendChild(style);
+})();
