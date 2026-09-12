@@ -91,6 +91,10 @@
     const width=parseFloat(grid.style.getPropertyValue('--case-cell'));
     grid.style.setProperty('--case-cell-height',`${width}px`);
     grid.style.gridTemplateRows=`repeat(${caseDimensions().rows},var(--case-cell-height))`;
+    for(const button of grid.querySelectorAll('.re4-weapon')){
+      button.style.setProperty('--re4-art-width',`${button.clientHeight}px`);
+      button.style.setProperty('--re4-art-height',`${button.clientWidth}px`);
+    }
   }
   renderCase=function(){if(!restoring)reconcile();originalRender();decorate();fitCase();};
   calc=function(){originalCalc();updateActive();};
