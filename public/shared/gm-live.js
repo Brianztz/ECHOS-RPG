@@ -297,12 +297,23 @@
     const miroButton=document.createElement('button');miroButton.type='button';miroButton.className='primary';miroButton.textContent='Enviar pistas públicas ao Miro';
     const miroStatus=document.createElement('p');miroStatus.className='hint';miroStatus.setAttribute('role','status');miroStatus.textContent='As pistas para Todos serão publicadas no quadro compartilhado. Reenvios atualizam as pistas existentes.';
     box.append(miroButton,miroStatus);
-    miroButton.onclick=()=>{
+    miroButton.onclick=async()=>{
       if(!socket.connected){miroStatus.textContent='Conecte-se à mesa antes de enviar.';return;}
       const nodes=(state.gmClues?.nodes||[]).filter(n=>Array.isArray(n.audience)&&n.audience.includes('all'));
       if(!nodes.length){miroStatus.textContent='Nenhuma pista marcada para Todos.';return;}
       miroButton.disabled=true;miroStatus.textContent='Enviando ao Miro...';
-      socket.emit('gm:publish_clues',{nodes},res=>{miroButton.disabled=false;miroStatus.textContent=res?.ok?`${res.sent} pista(s) publicadas; ${res.skipped} já estavam atualizadas.`:res?.error||'Falha ao enviar ao Miro.';});
+      try{
+        const illustrated=[];
+        for(const node of nodes){
+          if(!node.image)throw new Error(`Adicione uma imagem à pista: ${node.title}`);
+          const picture=new Image();picture.src=node.image;await picture.decode();
+          const canvas=document.createElement('canvas');canvas.width=Math.max(400,picture.naturalWidth);canvas.height=picture.naturalHeight+70;
+          const context=canvas.getContext('2d');context.fillStyle='#17221b';context.fillRect(0,0,canvas.width,canvas.height);context.drawImage(picture,(canvas.width-picture.naturalWidth)/2,0);
+          context.fillStyle='#f3eedb';context.font='bold 28px sans-serif';context.textAlign='center';context.textBaseline='middle';context.fillText(String(node.title),canvas.width/2,picture.naturalHeight+35,canvas.width-30);
+          illustrated.push({...node,image:canvas.toDataURL('image/jpeg',.85)});
+        }
+        socket.emit('gm:publish_clues',{nodes:illustrated},res=>{miroButton.disabled=false;miroStatus.textContent=res?.ok?`${res.sent} imagem(ns) enviadas com nome; ${res.skipped} já estavam atualizadas.`:res?.error||'Falha ao enviar ao Miro.';});
+      }catch(error){miroButton.disabled=false;miroStatus.textContent=error.message||'Não foi possível preparar a imagem.';}
     };
     refreshLiveSelects();
   }
