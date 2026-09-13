@@ -5669,4 +5669,95 @@ updateTrails();['weapons','armor'].forEach(id=>addRow(id,{weapons:'weapon',armor
 <script src="/shared/re4-weapons.js"></script>
 <script src="/shared/re4-case.js"></script>
 <script src="/shared/player-live.js"></script>
+
+<style id="player-recorder-clue-toolbar-style">
+/* Gravador dentro da aba Pistas, ao lado do botão do Miro */
+.clue-board-tools #playerRecorderClueButton{
+  min-height:34px!important;
+  padding:7px 11px!important;
+  border-color:#82770d!important;
+  background:linear-gradient(180deg,#292604,#151302)!important;
+  color:#fff19a!important;
+  font-size:9px!important;
+  text-transform:uppercase!important;
+  letter-spacing:.08em!important;
+}
+.clue-board-tools #playerRecorderClueButton:hover{
+  border-color:#f0d900!important;
+  color:#fff!important;
+  background:#373300!important;
+}
+</style>
+
+<script id="player-recorder-clue-toolbar">
+(()=>{
+  'use strict';
+
+  if(window.__ECHOS_PLAYER_RECORDER_CLUE_TOOLBAR__) return;
+  window.__ECHOS_PLAYER_RECORDER_CLUE_TOOLBAR__=true;
+
+  const normalize=value=>String(value||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .trim().toLowerCase();
+
+  function clueToolbar(){
+    return document.querySelector('.clue-tab .clue-board-tools');
+  }
+
+  function findRecorderButton(){
+    // O player-recorder.js cria o botão "Gravador" dinamicamente no header.
+    return [...document.querySelectorAll('button')].find(btn=>{
+      if(btn.id==='playerRecorderClueButton') return true;
+      const text=normalize(btn.textContent);
+      return text==='gravador' || text.startsWith('gravador (');
+    });
+  }
+
+  function findMiroButton(toolbar){
+    return [...toolbar.querySelectorAll('button,a')].find(el=>
+      normalize(el.textContent).includes('miro')
+    );
+  }
+
+  function positionRecorder(){
+    const toolbar=clueToolbar();
+    const recorder=findRecorderButton();
+    if(!toolbar || !recorder) return;
+
+    recorder.id='playerRecorderClueButton';
+
+    const miro=findMiroButton(toolbar);
+    if(miro){
+      if(recorder.previousElementSibling!==miro){
+        miro.insertAdjacentElement('afterend',recorder);
+      }
+    }else if(recorder.parentElement!==toolbar){
+      // Se o Miro ainda não carregou, o Gravador já fica na barra de Pistas.
+      // Quando o botão do Miro aparecer, o observer reposiciona os dois lado a lado.
+      toolbar.prepend(recorder);
+    }
+  }
+
+  const observer=new MutationObserver(positionRecorder);
+
+  function start(){
+    positionRecorder();
+    observer.observe(document.body,{childList:true,subtree:true,characterData:true});
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',start,{once:true});
+  }else{
+    start();
+  }
+
+  window.addEventListener('load',()=>{
+    positionRecorder();
+    setTimeout(positionRecorder,100);
+    setTimeout(positionRecorder,500);
+    setTimeout(positionRecorder,1200);
+  });
+})();
+</script>
+
 </body></html>
