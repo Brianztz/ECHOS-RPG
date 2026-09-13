@@ -221,6 +221,14 @@
     });
     appendLiveAudienceOptions();
   }
+  window.audioClueBridge={refresh:refreshLiveSelects,async send(item,playerId,progress){
+    const request=(event,data)=>new Promise((resolve,reject)=>{if(!socket.connected)return reject(Error('Conecte-se à mesa.'));const timer=setTimeout(()=>reject(Error('O envio demorou demais. Tente novamente.')),30000);socket.emit(event,data,res=>{clearTimeout(timer);res?.ok?resolve(res):reject(Error(res?.error||'Falha no envio.'));});});
+    const extensions={mp3:'audio/mpeg',wav:'audio/wav',ogg:'audio/ogg',m4a:'audio/mp4',webm:'audio/webm',aac:'audio/aac',flac:'audio/flac'};
+    const mime=item.file.type.startsWith('audio/')?item.file.type:extensions[item.file.name.split('.').at(-1).toLowerCase()];
+    const result=await request('gm:audio_start',{playerId:Number(playerId),name:item.name,notes:item.notes,size:item.file.size,mime});
+    for(let offset=0,index=0;offset<item.file.size;offset+=90000,index++){const bytes=new Uint8Array(await item.file.slice(offset,offset+90000).arrayBuffer());let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);await request('gm:audio_chunk',{id:result.id,index,data:btoa(binary)});progress(Math.round(Math.min(offset+90000,item.file.size)/item.file.size*100));}
+    return request('gm:audio_finish',{id:result.id});
+  }};
 
   function appendLiveAudienceOptions() {
     const options = [...livePlayers.values()].map(p => summaryFor(p));
@@ -451,3 +459,4 @@
 
 
 (()=>{const script=document.createElement('script');script.src='/shared/gm-audio-clues.js';document.head.appendChild(script);})();
+

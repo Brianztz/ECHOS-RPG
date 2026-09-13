@@ -1,3 +1,4 @@
+import {audioEvent,audioResponse} from './audio-server.mjs';
 import { publishClues } from './miro-clues.mjs';
 const MAX_SHEET_CHARS = 6_000_000;
 const CHUNK_CHARS = 350_000;
@@ -98,6 +99,7 @@ export default {
       });
     }
 
+    if(url.pathname==='/api/audio')return env.ROOMS.getByName(normalizeTableCode(url.searchParams.get('mesa'))).fetch(request);
     if (url.pathname === '/ws') {
       if ((request.headers.get('Upgrade') || '').toLowerCase() !== 'websocket') {
         return new Response('Expected WebSocket upgrade', { status: 426 });
@@ -130,6 +132,7 @@ export class GameRoom {
   }
 
   async fetch(request) {
+    if(new URL(request.url).pathname==='/api/audio')return audioResponse(request,this.ctx.storage);
     if ((request.headers.get('Upgrade') || '').toLowerCase() !== 'websocket') {
       return new Response('WebSocket only', { status: 426 });
     }
@@ -392,6 +395,7 @@ export class GameRoom {
     const meta = ws.deserializeAttachment?.() || { role: 'guest', table: 'PADRAO' };
     const table = normalizeTableCode(payload?.mesa || meta.table || 'PADRAO');
 
+    if(['gm:audio_start','gm:audio_chunk','gm:audio_finish'].includes(event))return audioEvent(this,ws,event,payload);
     switch (event) {
       case 'master_ready': {
         if (meta.role === 'player') return { ok: false, error: 'Esta conexão já pertence a um jogador.' };
@@ -554,5 +558,7 @@ export class GameRoom {
     }
   }
 }
+
+
 
 

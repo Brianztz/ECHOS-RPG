@@ -193,7 +193,7 @@
     applyingRemote=true;try{hydrate(dados.fullData);if(typeof save==='function')save();toast('Ficha atualizada pelo mestre',1500);}finally{applyingRemote=false;}scheduleSync(80);
   });
   socket.on('player:gm_patch',(patch={})=>{applyingRemote=true;try{applyFieldPatch(patch.fields||{});applyConditionPatch(patch.conditions);if(typeof save==='function')save();toast('Mestre atualizou sua ficha',1500);}finally{applyingRemote=false;}scheduleSync(50);});
-  socket.on('player:gm_event',(event={})=>{applyingRemote=true;try{if(event.type==='equipment')receiveEquipment(event.data);else if(event.type==='ritual')receiveRitual(event.data);else if(event.type==='power')receivePower(event.data);else if(event.type==='clue')receiveClue(event.data);else if(event.type==='notice')toast(event.data?.message||'Mensagem do mestre',2400);}finally{applyingRemote=false;}scheduleSync(80);});
+  socket.on('player:gm_event',(event={})=>{applyingRemote=true;try{if(event.type==='audio_clue'){if(window.receiveAudioClue)window.receiveAudioClue(event.data);else(window.pendingAudioClues=window.pendingAudioClues||[]).push(event.data);}else if(event.type==='equipment')receiveEquipment(event.data);else if(event.type==='ritual')receiveRitual(event.data);else if(event.type==='power')receivePower(event.data);else if(event.type==='clue')receiveClue(event.data);else if(event.type==='notice')toast(event.data?.message||'Mensagem do mestre',2400);}finally{applyingRemote=false;}scheduleSync(80);});
 
   function wrapLocalSave() {
     if(typeof window.showAnimatedRoll==='function'&&!window.showAnimatedRoll.__initiativeSync){
@@ -221,3 +221,6 @@
 
   window.addEventListener('load',()=>{pageReady=true;injectUI();wrapLocalSave();updateTableUI();if(socket.connected)scheduleSync(80);});
 })();
+
+(()=>{const script=document.createElement('script');script.src='/shared/player-recorder.js';document.head.appendChild(script);})();
+
