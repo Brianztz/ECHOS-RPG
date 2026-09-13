@@ -721,10 +721,8 @@ section.tab[data-tab="condicoes"]{
 <header class="top">
  <div class="brand"><div class="kicker">Ordo Realitas / Protocolo de Condução</div><h1>Escudo do Mestre</h1><p>Ordem Paranormal RPG v1.3 • Livro Básico + Sobrevivendo ao Horror • integrado à ficha ZK</p></div>
  <div class="toolbar">
-  <button class="primary" onclick="saveState(true)">Salvar</button>
   <button onclick="exportState()">Exportar mesa</button>
   <label class="filebtn">Importar mesa<input id="stateImport" type="file" accept=".json,application/json" hidden></label>
-  <button onclick="window.print()">Imprimir / PDF</button>
   <button class="danger" onclick="resetState()">Limpar mesa</button>
  </div>
 </header>
@@ -1792,29 +1790,34 @@ init();
 
     const markDirty=()=>{
       dirty=true;
-      setEditorStatus('Alterações locais • salvando automaticamente...');
+      setEditorStatus('Alteração detectada • sincronizando em tempo real...');
       scheduleFrameSave();
     };
 
     d.addEventListener('input',markDirty,true);
-    d.addEventListener('change',markDirty,true);
+    d.addEventListener('change',()=>{
+      dirty=true;
+      clearTimeout(saveTimer);
+      saveTimer=setTimeout(()=>saveFromFrame(false),30);
+    },true);
     d.addEventListener('click',e=>{
       if(e.target.closest('button')){
         setTimeout(()=>{
           dirty=true;
-          setEditorStatus('Alteração detectada • salvando automaticamente...');
-          scheduleFrameSave();
-        },40);
+          setEditorStatus('Alteração detectada • sincronizando em tempo real...');
+          clearTimeout(saveTimer);
+          saveTimer=setTimeout(()=>saveFromFrame(false),50);
+        },20);
       }
     },true);
 
     showLoading(false);
-    setEditorStatus('Salvamento automático ativo • ficha sincronizada com o jogador.');
+    setEditorStatus('Sincronização em tempo real ativa • alterações vão direto para o jogador.');
   }
 
   function scheduleFrameSave(){
     clearTimeout(saveTimer);
-    saveTimer=setTimeout(()=>saveFromFrame(false),400);
+    saveTimer=setTimeout(()=>saveFromFrame(false),120);
   }
 
   function resourceMax(doc,resource){
@@ -1907,7 +1910,7 @@ init();
       dirty=false;
       remotePending=false;
 
-      setEditorStatus('Salvo automaticamente • ficha do jogador atualizada.');
+      setEditorStatus('Sincronizado em tempo real • ficha do jogador atualizada.');
 
       if(typeof window.toast==='function'){
         window.toast('Ficha completa sincronizada');
@@ -2156,7 +2159,7 @@ init();
 
     const badge=document.createElement('span');
     badge.id='gmAutosaveBadge';
-    badge.textContent='SALVAMENTO AUTOMÁTICO';
+    badge.textContent='AUTOSAVE • TEMPO REAL';
     badge.style.cssText=[
       'display:inline-flex','align-items:center','min-height:31px','padding:6px 9px',
       'border:1px solid #3f6840','border-radius:4px','background:#0d1a0e',
