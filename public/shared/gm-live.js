@@ -60,6 +60,16 @@
     };
   }
 
+  window.addLivePlayersToCombat=()=>{
+    for(const p of livePlayers.values()){
+      if(!p.online)continue;
+      const key=`live:${masterTableCode}:${playerKey(p)}`;
+      if(state.initiative.some(item=>item.liveKey===key))continue;
+      const s=summaryFor(p);
+      state.initiative.push({id:uid(),liveKey:key,name:s.characterName,init:0,def:s.defense,pv:s.pv,pvMax:s.pvMax,status:s.conditions.join(', ')});
+    }
+    renderInitiative();autosave();
+  };
   function renderLivePlayers() {
     const box = $('#liveGMPlayers');
     const countBox = $('#liveGMPlayersCount');
@@ -420,3 +430,5 @@
   `;
   document.head.appendChild(style);
 })();
+
+(()=>{const script=document.createElement('script');script.src='/shared/gm-bestiary.js';document.head.appendChild(script);})();
