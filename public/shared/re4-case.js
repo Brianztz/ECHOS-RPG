@@ -4,7 +4,7 @@
   if(sheetHeader){
     const fileActions=document.createElement('div');
     fileActions.className='sheet-file-actions';
-    const importAction=sheetHeader.querySelector('.toolbar .filebtn');
+    const importAction=document.getElementById('import')?.closest('label');
     const exportAction=sheetHeader.querySelector('.toolbar button[onclick="exportData()"]');
     if(importAction)fileActions.appendChild(importAction);
     if(exportAction)fileActions.appendChild(exportAction);
