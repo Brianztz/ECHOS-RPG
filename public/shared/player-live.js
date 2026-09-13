@@ -5,6 +5,13 @@
   const socket = io({ autoConnect:true });
   let applyingRemote = false;
   let syncTimer = null;
+  let pendingInitiative=null;
+  function flushInitiative(){
+    if(!pendingInitiative||!socket.connected)return;
+    const roll=pendingInitiative;
+    if(roll.mesa!==tableCode){pendingInitiative=null;return;}
+    socket.emit('player:initiative',roll,res=>{if(res?.ok&&pendingInitiative===roll){pendingInitiative=null;toast('Iniciativa enviada ao mestre',1500);}});
+  }
   let pageReady = document.readyState !== 'loading';
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s ?? '').replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
@@ -82,7 +89,7 @@
     if(applyingRemote||!socket.connected||!pageReady||typeof collect!=='function') return;
     const sheet=collect();const summary=buildSummary();
     socket.emit('status_change',{codigo:playerCode,id:playerCode,mesa:tableCode,nome:summary.characterName||'Agente',playerName:summary.playerName||'',foto:summary.portrait||sheet?.fields?.portraitData||'',nex:summary.nex,defesa:summary.defense,vida_atual:summary.pv,vida_max:summary.pvMax,sani_atual:summary.san,sani_max:summary.sanMax,pe_atual:summary.pe,pe_max:summary.peMax,radiacao:summary.radiation,status:summary.conditions,fullData:sheet,summary},res=>{
-      if(res?.ok===false) setStatus('wait',res.error||'Falha na sincronização'); else setStatus('online',`Conectado • Mesa ${tableCode}`);
+      if(res?.ok===false) setStatus('wait',res.error||'Falha na sincronização'); else {setStatus('online',`Conectado • Mesa ${tableCode}`);flushInitiative();}
     });
   }
 
@@ -189,6 +196,17 @@
   socket.on('player:gm_event',(event={})=>{applyingRemote=true;try{if(event.type==='equipment')receiveEquipment(event.data);else if(event.type==='ritual')receiveRitual(event.data);else if(event.type==='power')receivePower(event.data);else if(event.type==='clue')receiveClue(event.data);else if(event.type==='notice')toast(event.data?.message||'Mensagem do mestre',2400);}finally{applyingRemote=false;}scheduleSync(80);});
 
   function wrapLocalSave() {
+    if(typeof window.showAnimatedRoll==='function'&&!window.showAnimatedRoll.__initiativeSync){
+      const originalRoll=window.showAnimatedRoll;
+      const wrappedRoll=function(title,rule,rolls,picked,bonus,...rest){
+        const result=originalRoll.call(this,title,rule,rolls,picked,bonus,...rest);
+        if(String(title).trim().toLocaleLowerCase('pt-BR')==='iniciativa'){
+          const total=Number(rolls[picked])+Number(bonus);
+          if(Number.isFinite(total)){pendingInitiative={mesa:tableCode,total,rollId:crypto.randomUUID()};syncNow();if(!socket.connected)toast('Iniciativa será enviada ao reconectar.',1800);}
+        }
+        return result;
+      };wrappedRoll.__initiativeSync=true;window.showAnimatedRoll=wrappedRoll;
+    }
     if (typeof window.save === 'function' && !window.save.__liveWrapped) {
       const original = window.save;
       const wrapped = function(...args) {

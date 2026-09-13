@@ -70,7 +70,23 @@
     }
     renderInitiative();autosave();
   };
+  function receiveInitiative(p,roll=p?.initiative){
+    if(!roll||!p||normalizeTableCode(p.mesa)!==masterTableCode||!Number.isFinite(roll.total))return;
+    const key=`live:${masterTableCode}:${playerKey(p)}`;
+    state.receivedInitiativeRolls=state.receivedInitiativeRolls||{};
+    if(state.receivedInitiativeRolls[key]===roll.id)return;
+    state.receivedInitiativeRolls[key]=roll.id;
+    const s=summaryFor(p),active=state.initiative[state.combat.turn]?.id;
+    let item=state.initiative.find(x=>x.liveKey===key);
+    if(!item){item={id:uid(),liveKey:key,name:s.characterName,def:s.defense,pv:s.pv,pvMax:s.pvMax,status:s.conditions.join(', ')};state.initiative.push(item);}
+    item.init=roll.total;item.name=s.characterName;
+    state.initiative.sort((a,b)=>(Number(b.init)||0)-(Number(a.init)||0));
+    if(active&&(state.combat.round>1||state.combat.turn>0))state.combat.turn=Math.max(0,state.initiative.findIndex(x=>x.id===active));else state.combat.turn=0;
+    renderInitiative();autosave();
+  }
+  socket.on('gm:initiative',data=>receiveInitiative(data.player,data.roll));
   function renderLivePlayers() {
+    for(const p of livePlayers.values())receiveInitiative(p);
     const box = $('#liveGMPlayers');
     const countBox = $('#liveGMPlayersCount');
     if (!box) return;
@@ -432,3 +448,4 @@
 })();
 
 (()=>{const script=document.createElement('script');script.src='/shared/gm-bestiary.js';document.head.appendChild(script);})();
+

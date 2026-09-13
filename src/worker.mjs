@@ -331,6 +331,7 @@ export class GameRoom {
       pe_max: safeNumber(summary.peMax),
       radiacao: safeNumber(summary.radiation),
       status: Array.isArray(summary.conditions) ? summary.conditions : [],
+      initiative: record.initiative || null,
       summary: { ...summary, portrait },
       sheet: pickSheetPreview(sheet || {}, { ...summary, portrait }),
       online: this.isPlayerOnline(code),
@@ -501,6 +502,20 @@ export class GameRoom {
         return { ok: true, player };
       }
 
+      case 'player:initiative': {
+        if(meta.role!=='player'||!meta.playerCode)return {ok:false,error:'Conecte a ficha antes de rolar iniciativa.'};
+        const total=payload.total;
+        if(!Number.isFinite(total)||!Number.isInteger(total)||Math.abs(total)>10000)return {ok:false,error:'Iniciativa inválida.'};
+        const index=await this.getIndex(),record=index[meta.playerCode];
+        if(!record)return {ok:false,error:'Ficha não encontrada.'};
+        const roll={id:safeText(payload.rollId,80)||crypto.randomUUID(),total,at:Date.now()};
+        if(record.initiative?.id===roll.id)return {ok:true};
+        record.initiative=roll;index[meta.playerCode]=record;await this.putIndex(index);
+        const player=await this.publicPlayer(meta.playerCode,record,{table:meta.table});
+        this.broadcast('gm:initiative',{player,roll},x=>x.role==='gm'&&x.table===meta.table);
+        return {ok:true};
+      }
+
       case 'gm:publish_clues': {
         if(meta.role!=='gm')return {ok:false,error:'Ação exclusiva do mestre.'};
         if(this.miroBusy)return {ok:false,error:'Já existe um envio em andamento.'};
@@ -539,3 +554,5 @@ export class GameRoom {
     }
   }
 }
+
+
