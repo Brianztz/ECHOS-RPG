@@ -1,5 +1,15 @@
 (function () {
   'use strict';
+  const sheetHeader=document.querySelector('header.top');
+  if(sheetHeader){
+    const fileActions=document.createElement('div');
+    fileActions.className='sheet-file-actions';
+    const importAction=sheetHeader.querySelector('.toolbar .filebtn');
+    const exportAction=sheetHeader.querySelector('.toolbar button[onclick="exportData()"]');
+    if(importAction)fileActions.appendChild(importAction);
+    if(exportAction)fileActions.appendChild(exportAction);
+    sheetHeader.appendChild(fileActions);
+  }
   const sheetTitle=document.querySelector('header.top .brand h1');
   if(sheetTitle)sheetTitle.textContent='ECHOS RPG';
   const cluesTab=document.querySelector('.clue-tab');
