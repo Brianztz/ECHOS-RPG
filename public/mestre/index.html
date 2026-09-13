@@ -715,6 +715,40 @@ section.tab[data-tab="condicoes"]{
 
 <link rel="stylesheet" href="/shared/gm-theme.css">
 <link rel="stylesheet" href="/shared/gm-equipment.css">
+
+<style id="gm-custom-compendium-and-initiative">
+.gm-quick-initiative{margin-top:12px}
+.gm-initiative-add{display:grid;grid-template-columns:minmax(220px,1fr) 120px auto;gap:8px;align-items:end;margin-bottom:10px}
+.gm-initiative-add input,.gm-initiative-add button{min-height:38px}
+.gm-initiative-now{min-height:auto!important;margin:0 0 10px!important;padding:8px 10px!important;background:#0d110e!important}
+.gm-initiative-now strong{font-size:18px!important}.gm-initiative-now .round{font-size:9px!important}.gm-initiative-now .small{margin-left:auto}
+#initiativeList{display:grid;gap:6px}
+#initiativeList .init-row{display:grid!important;grid-template-columns:34px minmax(180px,1fr) 110px 36px!important;gap:7px!important;align-items:center!important;padding:7px!important;border:1px solid #303632!important;background:#090d0a!important}
+#initiativeList .init-row.active{border-color:var(--haz)!important;background:#171706!important;box-shadow:inset 3px 0 var(--haz)!important}
+#initiativeList .init-row input{min-height:31px!important;height:31px!important;padding:5px 7px!important}
+#initiativeList .init-value{text-align:center;font-weight:900;color:var(--haz)}
+#initiativeList .init-row .danger{width:34px;min-width:34px;padding:0}
+
+.comp-head-actions{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+.comp-switches,.comp-create-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.comp-create-actions button{border-color:#5a6042;color:#e8e2a4}.comp-create-actions button:hover{border-color:var(--haz)}
+.catalog-entry .gm-custom-mark{display:inline-block;margin-left:6px;color:var(--haz);font:800 7px/1 Consolas,monospace;letter-spacing:.06em}
+.gm-custom-entry-badge{display:inline-flex;margin-bottom:9px;padding:4px 7px;border:1px solid #6b650f;background:#1b1a05;color:#f1e88b;font:800 8px/1 Consolas,monospace;text-transform:uppercase;letter-spacing:.08em}
+.gm-custom-entry-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}.gm-custom-entry-actions .danger{margin-left:auto}
+.comp-custom-modal-panel{width:min(820px,100%)}
+.comp-custom-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.comp-custom-grid .full{grid-column:1/-1}
+.comp-custom-grid textarea{min-height:115px}
+.comp-custom-section{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding-top:4px}
+.comp-custom-section .full{grid-column:1/-1}.comp-custom-section[hidden]{display:none!important}
+.comp-custom-note{margin-top:11px;padding:9px 10px;border:1px solid #4d4b19;background:#141405;color:#aaa77d;font:600 9px/1.5 Consolas,monospace}
+@media(max-width:720px){
+ .gm-initiative-add{grid-template-columns:1fr 90px}.gm-initiative-add button{grid-column:1/-1}
+ #initiativeList .init-row{grid-template-columns:28px minmax(0,1fr) 78px 34px!important}
+ .comp-head-actions{align-items:stretch;width:100%}.comp-switches,.comp-create-actions{justify-content:flex-start}
+ .comp-custom-grid,.comp-custom-section{grid-template-columns:1fr}.comp-custom-grid .full,.comp-custom-section .full{grid-column:auto}
+}
+</style>
+
 </head>
 <body>
 <div class="app">
@@ -731,22 +765,27 @@ section.tab[data-tab="condicoes"]{
 
 <section class="tab active" data-tab="mesa">
 <div class="grid gm-connected-home-grid" id="gmConnectedHomeGrid"></div>
+<div class="grid gm-quick-initiative">
+ <article class="card span12">
+  <div class="section-head">
+   <div><h2>Iniciativa</h2><p class="hint">Digite somente o nome e o resultado tirado. A lista se organiza automaticamente do maior para o menor.</p></div>
+   <div class="row"><button class="primary" onclick="nextTurn()">Próximo turno</button><button onclick="resetCombat()">Reiniciar rodada</button></div>
+  </div>
+  <div class="gm-initiative-add">
+   <input id="initName" placeholder="Nome do personagem / ameaça" autocomplete="off">
+   <input id="initValue" type="number" placeholder="Valor" inputmode="numeric">
+   <button class="primary" onclick="addInitiative()">+ Adicionar</button>
+  </div>
+  <div class="turn-hero gm-initiative-now">
+   <span class="round" id="roundLabel">RODADA 1</span><strong id="turnLabel">Sem combatentes</strong><span class="small">ordem automática</span>
+  </div>
+  <div class="initiative-list" id="initiativeList"></div>
+ </article>
+</div>
 </section>
 
 <section class="tab" data-tab="combate">
 <div class="grid">
- <article class="card span12">
-  <div class="section-head"><div><h2>Iniciativa</h2><p class="hint">Uma rodada equivale a aproximadamente 6 segundos.</p></div><div class="row"><button onclick="sortInitiative()">Ordenar</button><button class="primary" onclick="nextTurn()">Próximo turno</button><button onclick="resetCombat()">Reiniciar combate</button></div></div>
-  <div class="turn-hero"><span class="round" id="roundLabel">RODADA 1</span><strong id="turnLabel">Sem combatentes</strong><span class="small">Padrão: 1 ação padrão + 1 movimento, ou 2 movimentos, ou 1 ação completa; ações livres e reações conforme aplicável.</span></div>
-  <div class="combat-toolbar" style="margin-top:9px">
-   <input id="initName" placeholder="Nome / ameaça">
-   <input id="initValue" type="number" placeholder="Inic.">
-   <input id="initDef" type="number" placeholder="DEF">
-   <input id="initPV" type="number" placeholder="PV">
-   <button class="primary" onclick="addInitiative()">Adicionar</button>
-  </div>
-  <div class="initiative-list" id="initiativeList"></div>
- </article>
  <article class="card span8">
   <h2>Ações & Defesa</h2>
   <div class="action-grid">
@@ -945,7 +984,13 @@ section.tab[data-tab="condicoes"]{
 <section class="tab" data-tab="compendio">
 <div class="grid">
  <article class="card span12">
-  <div class="section-head"><div><h2>Rituais & Poderes</h2><p class="hint">Compêndio de consulta rápida montado a partir dos catálogos da ficha ZK: 98 rituais e 304 poderes/habilidades.</p></div><div class="row"><button id="compRitualBtn" class="primary" onclick="setCompendium('ritual')">Rituais</button><button id="compPowerBtn" onclick="setCompendium('power')">Poderes</button></div></div>
+  <div class="section-head">
+   <div><h2>Rituais, Poderes & Habilidades</h2><p class="hint">Consulte o catálogo da ficha e crie entradas próprias do mestre. As criações ficam salvas automaticamente neste Escudo.</p></div>
+   <div class="comp-head-actions">
+    <div class="comp-switches"><button id="compRitualBtn" class="primary" onclick="setCompendium('ritual')">Rituais</button><button id="compPowerBtn" onclick="setCompendium('power')">Poderes & Habilidades</button></div>
+    <div class="comp-create-actions"><button type="button" onclick="openCustomCompendium('ritual')">+ Ritual</button><button type="button" onclick="openCustomCompendium('power')">+ Poder</button><button type="button" onclick="openCustomCompendium('ability')">+ Habilidade</button></div>
+   </div>
+  </div>
   <div class="searchbar"><input id="compSearch" placeholder="Buscar por nome, elemento, classe, texto..." oninput="renderCompendium()"><select id="compFilter" onchange="renderCompendium()"></select></div>
   <div class="catalog"><div class="catalog-list" id="compList"></div><div class="catalog-detail" id="compDetail"><div class="empty">Selecione uma entrada.</div></div></div>
  </article>
@@ -1096,6 +1141,51 @@ section.tab[data-tab="condicoes"]{
  </section>
 </div>
 
+
+<div class="modal" id="customCompModal" onclick="if(event.target===this)closeModal('customCompModal')">
+ <section class="modal-panel comp-custom-modal-panel" role="dialog" aria-modal="true" aria-labelledby="customCompModalTitle">
+  <div class="modal-head">
+   <div><div class="kicker">Criação do Mestre</div><h2 id="customCompModalTitle">Nova entrada</h2></div>
+   <button class="modal-close" type="button" onclick="closeModal('customCompModal')">×</button>
+  </div>
+  <input id="customCompId" type="hidden">
+  <div class="comp-custom-grid" style="margin-top:10px">
+   <div class="field"><label>Tipo</label><select id="customCompKind" onchange="toggleCustomCompFields()"><option value="ritual">Ritual</option><option value="power">Poder</option><option value="ability">Habilidade</option></select></div>
+   <div class="field"><label>Nome</label><input id="customCompName" placeholder="Nome da entrada"></div>
+
+   <div class="comp-custom-section" id="customRitualFields">
+    <div class="field"><label>Elemento</label><input id="customRitualElement" placeholder="Ex.: Morte"></div>
+    <div class="field"><label>Círculo</label><input id="customRitualCircle" type="number" min="1" max="4" value="1"></div>
+    <div class="field"><label>Custo</label><input id="customRitualCost" placeholder="Ex.: 3 PE"></div>
+    <div class="field"><label>Execução</label><input id="customRitualCast" placeholder="Ex.: Padrão"></div>
+    <div class="field"><label>Alcance</label><input id="customRitualRange" placeholder="Ex.: curto"></div>
+    <div class="field"><label>Alvo</label><input id="customRitualTarget" placeholder="Ex.: 1 ser"></div>
+    <div class="field"><label>Duração</label><input id="customRitualDuration" placeholder="Ex.: cena"></div>
+    <div class="field"><label>Resistência</label><input id="customRitualResistance" placeholder="Ex.: Vontade parcial"></div>
+    <div class="field full"><label>Efeito</label><textarea id="customRitualDesc" placeholder="Descreva o efeito do ritual"></textarea></div>
+    <div class="field full"><label>Discente (opcional)</label><textarea id="customRitualDiscente" placeholder="Forma Discente"></textarea></div>
+    <div class="field full"><label>Verdadeiro (opcional)</label><textarea id="customRitualVerdadeiro" placeholder="Forma Verdadeira"></textarea></div>
+   </div>
+
+   <div class="comp-custom-section" id="customPowerFields" hidden>
+    <div class="field"><label>Categoria / classe</label><input id="customPowerClass" placeholder="Ex.: Combatente, Origem..."></div>
+    <div class="field"><label>Trilha / origem (opcional)</label><input id="customPowerTrail" placeholder="Ex.: Operações Especiais"></div>
+    <div class="field"><label>NEX (opcional)</label><input id="customPowerNex" type="number" min="0" max="99" placeholder="Ex.: 40"></div>
+    <div class="field"><label>Pré-requisito (opcional)</label><input id="customPowerPrereq" placeholder="Ex.: Força 2"></div>
+    <div class="field full"><label>Descrição</label><textarea id="customPowerSummary" placeholder="Descreva o efeito"></textarea></div>
+   </div>
+
+   <div class="field full"><label>Fonte / observação (opcional)</label><input id="customCompSource" placeholder="Ex.: Criação da campanha"></div>
+  </div>
+  <div class="comp-custom-note">Entradas personalizadas ficam salvas no Escudo. Elas não alteram o catálogo oficial da ficha do jogador automaticamente.</div>
+  <div class="modal-actions">
+   <button id="customCompDelete" class="danger" type="button" onclick="deleteCustomCompendiumFromModal()" hidden>Excluir</button>
+   <button type="button" onclick="closeModal('customCompModal')">Cancelar</button>
+   <button class="primary" type="button" onclick="saveCustomCompendium()">Salvar</button>
+  </div>
+ </section>
+</div>
+
 <div class="modal" id="conditionModal" onclick="if(event.target===this)closeModal('conditionModal')"><section class="modal-panel"><div class="modal-head"><div><div class="kicker">Estado do agente</div><h2 id="conditionModalTitle">Condições</h2></div><button class="modal-close" onclick="closeModal('conditionModal')">×</button></div><input id="conditionModalSearch" placeholder="Buscar..." oninput="renderConditionPicker()"><div class="check-grid" id="conditionPicker" style="margin-top:9px"></div><div class="modal-actions"><button class="primary" onclick="closeModal('conditionModal')">Concluir</button></div></section></div>
 
 <div class="modal" id="clueModal" onclick="if(event.target===this)closeModal('clueModal')"><section class="modal-panel"><div class="modal-head"><div><div class="kicker">Transmissão de inteligência</div><h2 id="clueModalTitle">Nova pista</h2></div><button class="modal-close" onclick="closeModal('clueModal')">×</button></div>
@@ -1128,9 +1218,9 @@ let state={
  session:{mission:'',scene:'',session:'',notes:''},
  players:[],initiative:[],combat:{round:1,turn:0},
  extended:{s:0,f:0},urgency:{max:4,now:4},chase:{s:0,f:0,target:3},
- stealth:[],equipments:[],gmClues:{nodes:[],links:[],seq:1,zoom:1},comp:{type:'ritual',selected:null}
+ stealth:[],equipments:[],gmClues:{nodes:[],links:[],seq:1,zoom:1},customCompendium:{rituals:[],powers:[]},comp:{type:'ritual',selected:null}
 };
-let conditionPlayerId=null, gmClueEditing=null, gmLinkMode=false,gmLinkStart=null,gmDrag=null,compType='ritual',compSelected=null;
+let conditionPlayerId=null, gmClueEditing=null, gmLinkMode=false,gmLinkStart=null,gmDrag=null,compType='ritual',compSelected=null,customCompEditingId=null;
 const byId=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
@@ -1209,14 +1299,50 @@ function setPlayerCondition(name,on){let p=state.players.find(x=>x.id===conditio
 function togglePlayerCondition(id,name){let p=state.players.find(x=>x.id===id);if(!p)return;p.conditions=(p.conditions||[]).filter(x=>x!==name);renderPlayers();autosave()}
 
 /* initiative */
-function syncPlayersToInitiative(){for(let p of state.players){if(!state.initiative.some(i=>i.playerId===p.id))state.initiative.push({id:uid(),playerId:p.id,name:p.character,init:0,def:p.def,pv:p.pv,pvMax:p.pvMax,status:''})}sortInitiative();autosave()}
-function addInitiative(){let name=byId('initName').value.trim();if(!name)return;state.initiative.push({id:uid(),name,init:+byId('initValue').value||0,def:+byId('initDef').value||10,pv:+byId('initPV').value||1,pvMax:+byId('initPV').value||1,status:''});byId('initName').value='';renderInitiative();autosave()}
-function sortInitiative(){state.initiative.sort((a,b)=>(+b.init||0)-(+a.init||0));state.combat.turn=0;renderInitiative();autosave()}
-function removeInit(id){state.initiative=state.initiative.filter(x=>x.id!==id);state.combat.turn=clamp(state.combat.turn,0,Math.max(0,state.initiative.length-1));renderInitiative();autosave()}
+function initiativeStarted(){return state.combat.round>1||state.combat.turn>0}
+function sortInitiative(preserveTurn=true){
+ const activeId=preserveTurn&&initiativeStarted()?state.initiative[state.combat.turn]?.id:null;
+ state.initiative.forEach((item,index)=>{if(!Number.isFinite(Number(item.__order)))item.__order=index});
+ state.initiative.sort((a,b)=>{const d=(Number(b.init)||0)-(Number(a.init)||0);return d!==0?d:(Number(a.__order)||0)-(Number(b.__order)||0)});
+ if(activeId){const next=state.initiative.findIndex(x=>x.id===activeId);state.combat.turn=next>=0?next:0}else state.combat.turn=0;
+ renderInitiative();autosave()
+}
+function syncPlayersToInitiative(){
+ for(const p of state.players){
+  if(!state.initiative.some(i=>i.playerId===p.id))state.initiative.push({id:uid(),playerId:p.id,name:p.character,init:0,__order:Date.now()+state.initiative.length})
+ }
+ sortInitiative(true)
+}
+function addInitiative(){
+ const name=byId('initName')?.value.trim();if(!name)return;
+ const value=Number(byId('initValue')?.value||0);
+ state.initiative.push({id:uid(),name,init:Number.isFinite(value)?value:0,__order:Date.now()+state.initiative.length});
+ byId('initName').value='';byId('initValue').value='';sortInitiative(true);byId('initName')?.focus()
+}
+function removeInit(id){
+ const activeId=state.initiative[state.combat.turn]?.id;
+ state.initiative=state.initiative.filter(x=>x.id!==id);
+ if(activeId){const next=state.initiative.findIndex(x=>x.id===activeId);state.combat.turn=next>=0?next:0}
+ else state.combat.turn=clamp(state.combat.turn,0,Math.max(0,state.initiative.length-1));
+ renderInitiative();autosave()
+}
 function nextTurn(){if(!state.initiative.length)return;state.combat.turn++;if(state.combat.turn>=state.initiative.length){state.combat.turn=0;state.combat.round++}renderInitiative();autosave()}
-function resetCombat(){state.combat={round:1,turn:0};renderInitiative();autosave()}
-function renderInitiative(){let box=byId('initiativeList'),list=state.initiative;byId('roundLabel').textContent='RODADA '+state.combat.round;byId('turnLabel').textContent=list.length?(list[state.combat.turn]?.name||'—'):'Sem combatentes';if(!list.length){box.innerHTML='<div class="empty">Nenhum participante.</div>';return}box.innerHTML=list.map((x,i)=>`<div class="init-row ${i===state.combat.turn?'active':''}"><span class="init-index">${i+1}</span><input data-init="${x.id}" data-ikey="name" value="${esc(x.name)}"><input type="number" data-init="${x.id}" data-ikey="init" value="${x.init}" title="Iniciativa"><input type="number" data-init="${x.id}" data-ikey="def" value="${x.def}" title="Defesa"><input data-init="${x.id}" data-ikey="pvpair" value="${x.pv}/${x.pvMax}" title="PV atual/máximo"><input data-init="${x.id}" data-ikey="status" value="${esc(x.status||'')}" placeholder="Condição / nota"><button class="danger" onclick="removeInit('${x.id}')">×</button></div>`).join('')}
-document.addEventListener('change',e=>{let id=e.target.dataset.init,key=e.target.dataset.ikey;if(!id)return;let x=state.initiative.find(v=>v.id===id);if(!x)return;if(key==='pvpair'){let [a,b]=e.target.value.split('/').map(v=>+v||0);x.pv=a;x.pvMax=b||x.pvMax}else x[key]=e.target.type==='number'?+e.target.value:e.target.value;renderInitiative();autosave()});
+function resetCombat(){state.combat={round:1,turn:0};sortInitiative(false)}
+function renderInitiative(){
+ const box=byId('initiativeList'),list=state.initiative;if(!box)return;
+ const round=byId('roundLabel'),turn=byId('turnLabel');
+ if(round)round.textContent='RODADA '+state.combat.round;
+ if(turn)turn.textContent=list.length?(list[state.combat.turn]?.name||'—'):'Sem combatentes';
+ if(!list.length){box.innerHTML='<div class="empty">Nenhum participante. Adicione nome e valor acima.</div>';return}
+ box.innerHTML=list.map((x,i)=>`<div class="init-row ${i===state.combat.turn?'active':''}"><span class="init-index">${i+1}</span><input data-init="${x.id}" data-ikey="name" value="${esc(x.name||'')}" aria-label="Nome"><input class="init-value" type="number" data-init="${x.id}" data-ikey="init" value="${Number(x.init)||0}" aria-label="Iniciativa"><button class="danger" type="button" onclick="removeInit('${x.id}')" title="Remover">×</button></div>`).join('')
+}
+document.addEventListener('change',e=>{
+ const id=e.target.dataset.init,key=e.target.dataset.ikey;if(!id)return;
+ const item=state.initiative.find(v=>v.id===id);if(!item)return;
+ if(key==='init'){item.init=Number(e.target.value)||0;sortInitiative(true);return}
+ if(key==='name'){item.name=e.target.value;renderInitiative();autosave()}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target?.id==='initName'||e.target?.id==='initValue')){e.preventDefault();addInitiative()}});
 function calcMassive(){let max=+byId('massMax').value||0,dmg=+byId('massDamage').value||0,qual=max>0&&dmg>=max/2&&dmg>0,dt=15+2*Math.floor(dmg/10);byId('massResult').textContent=qual?'DT '+dt:'Não exige';byId('massNote').textContent=qual?'Se a vítima não caiu a 0 PV com o dano, faça o teste.':'O dano não alcança metade dos PV máximos (ou já foi a 0 PV).'}
 function calcEncounter(){let n=+byId('encNex').value||1,vd=+byId('encVD').value||0,r=vd/n,label,note;if(r<.5){label='Muito fácil';note='Abaixo da faixa normalmente recomendada.'}else if(r<.8){label='Fácil';note='Próximo de metade do NEX total do grupo.'}else if(r<1.25){label='Equilibrado';note='Próximo do NEX total do grupo.'}else if(r<=1.6){label='Difícil';note='Próximo de 1,5× o NEX total do grupo.'}else{label='Extremo';note='Acima da faixa de dificuldade usual; use com intenção e contexto.'}byId('encResult').textContent=label;byId('encNote').textContent=`Relação VD/NEX = ${r.toFixed(2)}. ${note}`}
 
@@ -1251,19 +1377,101 @@ function renderStealth(){let box=byId('stealthList');if(!state.stealth.length){b
 function renameStealth(id,v){let x=state.stealth.find(x=>x.id===id);if(x){x.name=v;autosave()}}
 
 /* compendium */
+function ensureCustomCompendium(){
+ if(!state.customCompendium||typeof state.customCompendium!=='object')state.customCompendium={rituals:[],powers:[]};
+ if(!Array.isArray(state.customCompendium.rituals))state.customCompendium.rituals=[];
+ if(!Array.isArray(state.customCompendium.powers))state.customCompendium.powers=[]
+}
+function hydrateCustomCompendium(){
+ ensureCustomCompendium();
+ BOOK_DATA.rituals=BOOK_DATA.rituals.filter(x=>!x.gmCustomId);
+ BOOK_DATA.powers=BOOK_DATA.powers.filter(x=>!x.gmCustomId);
+ for(const item of state.customCompendium.rituals)BOOK_DATA.rituals.push({...item,gmCustomId:item.gmCustomId||item.id||uid(),gmCustom:true});
+ for(const item of state.customCompendium.powers)BOOK_DATA.powers.push({...item,gmCustomId:item.gmCustomId||item.id||uid(),gmCustom:true})
+}
+function currentCompendiumData(){return compType==='ritual'?BOOK_DATA.rituals:BOOK_DATA.powers}
 function setCompendium(type){compType=type;compSelected=null;byId('compRitualBtn').classList.toggle('primary',type==='ritual');byId('compPowerBtn').classList.toggle('primary',type==='power');renderCompendiumFilters();renderCompendium()}
-function renderCompendiumFilters(){let f=byId('compFilter');if(compType==='ritual'){let els=[...new Set(BOOK_DATA.rituals.flatMap(r=>r.elements||[r.element]).filter(Boolean))].sort();f.innerHTML='<option value="">Todos os elementos</option>'+els.map(x=>`<option>${esc(x)}</option>`).join('')}else{let types=[...new Set(BOOK_DATA.powers.map(p=>p.className||p.type).filter(Boolean))].sort();f.innerHTML='<option value="">Todas as classes/tipos</option>'+types.map(x=>`<option>${esc(x)}</option>`).join('')}}
+function renderCompendiumFilters(){
+ const f=byId('compFilter');
+ if(compType==='ritual'){
+  const els=[...new Set(BOOK_DATA.rituals.flatMap(r=>r.elements||[r.element]).filter(Boolean))].sort();
+  f.innerHTML='<option value="">Todos os elementos</option>'+els.map(x=>`<option>${esc(x)}</option>`).join('')
+ }else{
+  const types=[...new Set(BOOK_DATA.powers.map(p=>p.className||p.type).filter(Boolean))].sort();
+  f.innerHTML='<option value="">Todas as classes/tipos</option>'+types.map(x=>`<option>${esc(x)}</option>`).join('')
+ }
+}
 function renderCompendium(){
- let data=compType==='ritual'?BOOK_DATA.rituals:BOOK_DATA.powers,q=(byId('compSearch').value||'').toLowerCase(),filter=byId('compFilter').value||'';
- let rows=data.map((x,i)=>({x,i})).filter(({x})=>{let hay=JSON.stringify(x).toLowerCase(),ok=!q||hay.includes(q);if(compType==='ritual'&&filter)ok=ok&&(x.elements||[x.element]).includes(filter);if(compType==='power'&&filter)ok=ok&&(x.className===filter||x.type===filter);return ok}).slice(0,500);
- byId('compList').innerHTML=rows.length?rows.map(({x,i})=>`<button class="catalog-entry ${compSelected===i?'active':''}" onclick="selectComp(${i})"><strong>${esc(x.name)}</strong><small>${compType==='ritual'?`${esc(x.element)} • ${esc(x.circle)}º círculo • ${esc(x.cost)}`:`${esc(x.type)}${x.className?' • '+esc(x.className):''}${x.nex!==''?' • NEX '+esc(x.nex)+'%':''}`}</small></button>`).join(''):'<div class="empty">Nada encontrado.</div>';
- if(compSelected!==null)renderCompDetail();
+ const data=currentCompendiumData(),q=(byId('compSearch').value||'').toLowerCase(),filter=byId('compFilter').value||'';
+ const rows=data.map((x,i)=>({x,i})).filter(({x})=>{
+  const hay=JSON.stringify(x).toLowerCase();let ok=!q||hay.includes(q);
+  if(compType==='ritual'&&filter)ok=ok&&(x.elements||[x.element]).includes(filter);
+  if(compType==='power'&&filter)ok=ok&&(x.className===filter||x.type===filter);
+  return ok
+ }).slice(0,500);
+ byId('compList').innerHTML=rows.length?rows.map(({x,i})=>`<button class="catalog-entry ${compSelected===i?'active':''}" onclick="selectComp(${i})"><strong>${esc(x.name)}${x.gmCustomId?'<span class="gm-custom-mark">PERSONALIZADO</span>':''}</strong><small>${compType==='ritual'?`${esc(x.element||'Sem elemento')} • ${esc(x.circle||'—')}º círculo • ${esc(x.cost||'—')}`:`${esc(x.type||'Poder / habilidade')}${x.className?' • '+esc(x.className):''}${x.nex!==''&&x.nex!==undefined?' • NEX '+esc(x.nex)+'%':''}`}</small></button>`).join(''):'<div class="empty">Nada encontrado.</div>';
+ if(compSelected!==null)renderCompDetail()
 }
 function selectComp(i){compSelected=i;renderCompendium();renderCompDetail()}
-function renderCompDetail(){let x=(compType==='ritual'?BOOK_DATA.rituals:BOOK_DATA.powers)[compSelected];if(!x){byId('compDetail').innerHTML='<div class="empty">Selecione uma entrada.</div>';return}
- if(compType==='ritual')byId('compDetail').innerHTML=`<div class="detail-title">${esc(x.name)}</div><div class="meta"><span>${esc(x.element)}</span><span>${esc(x.circle)}º círculo</span><span>${esc(x.cost)}</span><span>${esc(x.cast)}</span><span>${esc(x.range)}</span></div><div class="detail-block"><b>Alvo / duração / resistência</b><p>${esc(x.target)} • ${esc(x.duration)} • ${esc(x.resistance)}</p></div><div class="detail-block"><b>Efeito</b><p>${esc(x.desc)}</p></div>${x.discente?`<div class="detail-block"><b>Discente</b><p>${esc(x.discente)}</p></div>`:''}${x.verdadeiro?`<div class="detail-block"><b>Verdadeiro</b><p>${esc(x.verdadeiro)}</p></div>`:''}<p class="ref">${esc(x.source||'')}</p>`;
- else byId('compDetail').innerHTML=`<div class="detail-title">${esc(x.name)}</div><div class="meta"><span>${esc(x.type)}</span>${x.className?`<span>${esc(x.className)}</span>`:''}${x.trail?`<span>${esc(x.trail)}</span>`:''}${x.nex!==''?`<span>NEX ${esc(x.nex)}%</span>`:''}${x.prereq?`<span>${esc(x.prereq)}</span>`:''}</div><div class="detail-block"><b>Descrição</b><p>${esc(x.summary)}</p></div><p class="ref">${esc(x.source||'')}</p>`;
+function customEntryControls(x){
+ if(!x?.gmCustomId)return '';
+ return `<div class="gm-custom-entry-actions"><button type="button" onclick="editCustomCompendium('${x.gmCustomId}')">Editar</button><button class="danger" type="button" onclick="deleteCustomCompendium('${x.gmCustomId}')">Excluir</button></div><div id="liveCompGrant" class="notice" style="margin-top:11px">Esta é uma criação personalizada do mestre. Ela fica salva neste Escudo e não é adicionada ao catálogo oficial do jogador automaticamente.</div>`
 }
+function renderCompDetail(){
+ const x=currentCompendiumData()[compSelected];if(!x){byId('compDetail').innerHTML='<div class="empty">Selecione uma entrada.</div>';return}
+ const badge=x.gmCustomId?'<span class="gm-custom-entry-badge">Criação do Mestre</span>':'';
+ if(compType==='ritual')byId('compDetail').innerHTML=`${badge}<div class="detail-title">${esc(x.name)}</div><div class="meta"><span>${esc(x.element||'—')}</span><span>${esc(x.circle||'—')}º círculo</span><span>${esc(x.cost||'—')}</span><span>${esc(x.cast||'—')}</span><span>${esc(x.range||'—')}</span></div><div class="detail-block"><b>Alvo / duração / resistência</b><p>${esc(x.target||'—')} • ${esc(x.duration||'—')} • ${esc(x.resistance||'—')}</p></div><div class="detail-block"><b>Efeito</b><p>${esc(x.desc||'')}</p></div>${x.discente?`<div class="detail-block"><b>Discente</b><p>${esc(x.discente)}</p></div>`:''}${x.verdadeiro?`<div class="detail-block"><b>Verdadeiro</b><p>${esc(x.verdadeiro)}</p></div>`:''}<p class="ref">${esc(x.source||'')}</p>${customEntryControls(x)}`;
+ else byId('compDetail').innerHTML=`${badge}<div class="detail-title">${esc(x.name)}</div><div class="meta"><span>${esc(x.type||'Poder / habilidade')}</span>${x.className?`<span>${esc(x.className)}</span>`:''}${x.trail?`<span>${esc(x.trail)}</span>`:''}${x.nex!==''&&x.nex!==undefined?`<span>NEX ${esc(x.nex)}%</span>`:''}${x.prereq?`<span>${esc(x.prereq)}</span>`:''}</div><div class="detail-block"><b>Descrição</b><p>${esc(x.summary||'')}</p></div><p class="ref">${esc(x.source||'')}</p>${customEntryControls(x)}`
+}
+function toggleCustomCompFields(){
+ const kind=byId('customCompKind').value;byId('customRitualFields').hidden=kind!=='ritual';byId('customPowerFields').hidden=kind==='ritual';
+ byId('customCompModalTitle').textContent=`${customCompEditingId?'Editar':'Novo'} ${kind==='ritual'?'ritual':kind==='ability'?'habilidade':'poder'}`
+}
+function clearCustomCompForm(){
+ for(const id of ['customCompName','customCompSource','customRitualElement','customRitualCost','customRitualCast','customRitualRange','customRitualTarget','customRitualDuration','customRitualResistance','customRitualDesc','customRitualDiscente','customRitualVerdadeiro','customPowerClass','customPowerTrail','customPowerNex','customPowerPrereq','customPowerSummary']){const el=byId(id);if(el)el.value=''}
+ byId('customRitualCircle').value='1'
+}
+function findCustomCompendium(id){
+ ensureCustomCompendium();
+ const ritual=state.customCompendium.rituals.find(x=>x.gmCustomId===id);if(ritual)return{kind:'ritual',item:ritual};
+ const power=state.customCompendium.powers.find(x=>x.gmCustomId===id);if(power)return{kind:power.customKind==='ability'?'ability':'power',item:power};
+ return null
+}
+function openCustomCompendium(kind='ritual',id=null){
+ ensureCustomCompendium();customCompEditingId=id||null;clearCustomCompForm();
+ let actualKind=kind,item=null;
+ if(id){const found=findCustomCompendium(id);if(!found)return;actualKind=found.kind;item=found.item}
+ byId('customCompId').value=id||'';byId('customCompKind').value=actualKind;byId('customCompKind').disabled=!!id;byId('customCompDelete').hidden=!id;
+ if(item){
+  byId('customCompName').value=item.name||'';byId('customCompSource').value=item.source||'';
+  if(actualKind==='ritual'){
+   byId('customRitualElement').value=item.element||'';byId('customRitualCircle').value=item.circle||1;byId('customRitualCost').value=item.cost||'';byId('customRitualCast').value=item.cast||'';byId('customRitualRange').value=item.range||'';byId('customRitualTarget').value=item.target||'';byId('customRitualDuration').value=item.duration||'';byId('customRitualResistance').value=item.resistance||'';byId('customRitualDesc').value=item.desc||'';byId('customRitualDiscente').value=item.discente||'';byId('customRitualVerdadeiro').value=item.verdadeiro||''
+  }else{
+   byId('customPowerClass').value=item.className||'';byId('customPowerTrail').value=item.trail||'';byId('customPowerNex').value=item.nex??'';byId('customPowerPrereq').value=item.prereq||'';byId('customPowerSummary').value=item.summary||''
+  }
+ }
+ toggleCustomCompFields();openModal('customCompModal');setTimeout(()=>byId('customCompName')?.focus(),30)
+}
+function editCustomCompendium(id){const found=findCustomCompendium(id);if(found)openCustomCompendium(found.kind,id)}
+function saveCustomCompendium(){
+ ensureCustomCompendium();const kind=byId('customCompKind').value,name=byId('customCompName').value.trim();if(!name){alert('Dê um nome à entrada.');byId('customCompName').focus();return}
+ const id=customCompEditingId||uid();let entry;
+ if(kind==='ritual'){
+  const element=byId('customRitualElement').value.trim()||'Personalizado';
+  entry={gmCustomId:id,gmCustom:true,customKind:'ritual',name,elements:[element],element,circle:String(Math.max(1,Math.min(4,Number(byId('customRitualCircle').value)||1))),cost:byId('customRitualCost').value.trim()||'—',cast:byId('customRitualCast').value.trim()||'—',range:byId('customRitualRange').value.trim()||'—',target:byId('customRitualTarget').value.trim()||'—',duration:byId('customRitualDuration').value.trim()||'—',resistance:byId('customRitualResistance').value.trim()||'—',desc:byId('customRitualDesc').value.trim(),discente:byId('customRitualDiscente').value.trim(),verdadeiro:byId('customRitualVerdadeiro').value.trim(),source:byId('customCompSource').value.trim()||'Criação do Mestre'};
+  const i=state.customCompendium.rituals.findIndex(x=>x.gmCustomId===id);if(i>=0)state.customCompendium.rituals[i]=entry;else state.customCompendium.rituals.push(entry);compType='ritual'
+ }else{
+  entry={gmCustomId:id,gmCustom:true,customKind:kind,name,type:kind==='ability'?'Habilidade personalizada':'Poder personalizado',className:byId('customPowerClass').value.trim()||'Personalizado',trail:byId('customPowerTrail').value.trim(),nex:byId('customPowerNex').value.trim(),source:byId('customCompSource').value.trim()||'Criação do Mestre',prereq:byId('customPowerPrereq').value.trim(),summary:byId('customPowerSummary').value.trim()};
+  const i=state.customCompendium.powers.findIndex(x=>x.gmCustomId===id);if(i>=0)state.customCompendium.powers[i]=entry;else state.customCompendium.powers.push(entry);compType='power'
+ }
+ hydrateCustomCompendium();byId('compSearch').value='';renderCompendiumFilters();const data=currentCompendiumData();compSelected=data.findIndex(x=>x.gmCustomId===id);byId('compRitualBtn').classList.toggle('primary',compType==='ritual');byId('compPowerBtn').classList.toggle('primary',compType==='power');renderCompendium();closeModal('customCompModal');byId('customCompKind').disabled=false;customCompEditingId=null;saveState(false);toast('Entrada personalizada salva')
+}
+function deleteCustomCompendium(id){
+ const found=findCustomCompendium(id);if(!found)return;if(!confirm(`Excluir "${found.item.name}" do compêndio do mestre?`))return;
+ if(found.kind==='ritual')state.customCompendium.rituals=state.customCompendium.rituals.filter(x=>x.gmCustomId!==id);else state.customCompendium.powers=state.customCompendium.powers.filter(x=>x.gmCustomId!==id);
+ hydrateCustomCompendium();compSelected=null;renderCompendiumFilters();renderCompendium();saveState(false);toast('Entrada excluída')
+}
+function deleteCustomCompendiumFromModal(){if(!customCompEditingId)return;const id=customCompEditingId;closeModal('customCompModal');byId('customCompKind').disabled=false;customCompEditingId=null;deleteCustomCompendium(id)}
 
 /* conditions library */
 function renderConditionLibrary(){let q=(byId('conditionSearch').value||'').toLowerCase(),data=BOOK_DATA.conditions.filter(x=>(x.name+' '+x.effect).toLowerCase().includes(q));byId('conditionLibrary').innerHTML=data.map(x=>`<article class="condition-card"><h3>${esc(x.name)}</h3><p>${esc(x.effect)}</p></article>`).join('')}
@@ -1290,7 +1498,7 @@ function downloadCluePackage(){let pkg=buildCluePackage(),target=byId('packageTa
 
 /* init */
 function init(){
- setupTabs();loadState();
+ setupTabs();loadState();hydrateCustomCompendium();
  document.querySelectorAll('[data-session]').forEach(x=>x.value=state.session[x.dataset.session]||'');
  if(!state.players.length)state.players=[newPlayer()];
  renderPlayers();renderInitiative();calcMassive();calcEncounter();calcAbilityDC();calcPELimit();
