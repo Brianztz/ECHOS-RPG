@@ -5694,8 +5694,8 @@ updateTrails();['weapons','armor'].forEach(id=>addRow(id,{weapons:'weapon',armor
 (()=>{
   'use strict';
 
-  if(window.__ECHOS_PLAYER_RECORDER_CLUE_TOOLBAR_V2__) return;
-  window.__ECHOS_PLAYER_RECORDER_CLUE_TOOLBAR_V2__=true;
+  if(window.__ECHOS_PLAYER_RECORDER_CLUE_TOOLBAR_V3__) return;
+  window.__ECHOS_PLAYER_RECORDER_CLUE_TOOLBAR_V3__=true;
 
   const normalize=value=>String(value||'')
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
@@ -5708,18 +5708,18 @@ updateTrails();['weapons','armor'].forEach(id=>addRow(id,{weapons:'weapon',armor
       );
   }
 
-  function findRecorderButton(){
-    return [...document.querySelectorAll('button')].find(btn=>{
-      if(btn.id==='playerRecorderClueButton') return true;
+  function getRecorderButtons(){
+    return [...document.querySelectorAll('button')].filter(btn=>{
       const text=normalize(btn.textContent);
-      return text==='gravador' || text.startsWith('gravador (');
+      return btn.id==='playerRecorderClueButton' ||
+             text==='gravador' ||
+             text.startsWith('gravador (');
     });
   }
 
   function findMiroControl(){
     const clueTab=getClueTab();
 
-    // Primeiro procura dentro da aba Pistas.
     if(clueTab){
       const local=[...clueTab.querySelectorAll('button,a')].find(el=>
         normalize(el.textContent).includes('miro')
@@ -5727,7 +5727,6 @@ updateTrails();['weapons','armor'].forEach(id=>addRow(id,{weapons:'weapon',armor
       if(local) return local;
     }
 
-    // Fallback: o botão do Miro pode ser injetado em uma barra externa.
     return [...document.querySelectorAll('button,a')].find(el=>
       normalize(el.textContent).includes('miro')
     );
@@ -5740,20 +5739,33 @@ updateTrails();['weapons','armor'].forEach(id=>addRow(id,{weapons:'weapon',armor
            clueTab;
   }
 
-  function positionRecorder(){
-    const recorder=findRecorderButton();
-    if(!recorder) return;
+  function dedupeAndPositionRecorder(){
+    const buttons=getRecorderButtons();
+    if(!buttons.length) return;
+
+    const miro=findMiroControl();
+
+    // Se já houver um botão ao lado do Miro, preserva esse.
+    // Caso contrário, usa o primeiro botão funcional criado pelo gravador.
+    let recorder=buttons.find(btn=>
+      miro &&
+      btn.parentElement===miro.parentElement &&
+      (btn.previousElementSibling===miro || btn.nextElementSibling===miro)
+    ) || buttons[0];
 
     recorder.id='playerRecorderClueButton';
     recorder.type='button';
 
-    const miro=findMiroControl();
+    // Remove qualquer cópia extra do botão.
+    for(const button of buttons){
+      if(button!==recorder){
+        button.remove();
+      }
+    }
 
     if(miro){
-      const parent=miro.parentElement;
-      if(parent && recorder.parentElement!==parent){
-        miro.insertAdjacentElement('afterend',recorder);
-      }else if(recorder.previousElementSibling!==miro){
+      if(recorder.parentElement!==miro.parentElement ||
+         recorder.previousElementSibling!==miro){
         miro.insertAdjacentElement('afterend',recorder);
       }
       return;
@@ -5765,19 +5777,29 @@ updateTrails();['weapons','armor'].forEach(id=>addRow(id,{weapons:'weapon',armor
     }
   }
 
-  function boot(){
-    positionRecorder();
+  let queued=false;
+  function queueFix(){
+    if(queued) return;
+    queued=true;
+    requestAnimationFrame(()=>{
+      queued=false;
+      dedupeAndPositionRecorder();
+    });
+  }
 
-    const observer=new MutationObserver(()=>positionRecorder());
+  function boot(){
+    dedupeAndPositionRecorder();
+
+    const observer=new MutationObserver(queueFix);
     observer.observe(document.body,{
       childList:true,
       subtree:true,
       characterData:true
     });
 
-    // O player-recorder.js é inicializado no load; estes reforços cobrem
-    // carregamento tardio e o botão do Miro sendo injetado depois.
-    [50,150,350,700,1200,2200].forEach(ms=>setTimeout(positionRecorder,ms));
+    [50,150,350,700,1200,2200].forEach(ms=>
+      setTimeout(dedupeAndPositionRecorder,ms)
+    );
   }
 
   if(document.readyState==='loading'){
@@ -5787,9 +5809,9 @@ updateTrails();['weapons','armor'].forEach(id=>addRow(id,{weapons:'weapon',armor
   }
 
   window.addEventListener('load',()=>{
-    positionRecorder();
-    setTimeout(positionRecorder,100);
-    setTimeout(positionRecorder,500);
+    dedupeAndPositionRecorder();
+    setTimeout(dedupeAndPositionRecorder,100);
+    setTimeout(dedupeAndPositionRecorder,500);
   });
 })();
 </script>
