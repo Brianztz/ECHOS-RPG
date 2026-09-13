@@ -449,3 +449,5 @@
 
 (()=>{const script=document.createElement('script');script.src='/shared/gm-bestiary.js';document.head.appendChild(script);})();
 
+
+(()=>{const script=document.createElement('script');script.src='/shared/gm-audio-clues.js';document.head.appendChild(script);})();
