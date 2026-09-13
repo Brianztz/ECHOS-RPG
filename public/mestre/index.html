@@ -1493,5 +1493,680 @@ init();
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/shared/gm-live.js"></script>
+
+<script id="gm-full-sheet-editor">
+(()=>{
+  'use strict';
+
+  if(window.__ECHOS_FULL_SHEET_EDITOR__) return;
+  window.__ECHOS_FULL_SHEET_EDITOR__ = true;
+
+  const $=(s,r=document)=>r.querySelector(s);
+  const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const n=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
+
+  const normalizeTableCode=value=>{
+    const normalized=String(value||'PADRAO')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .trim().toUpperCase()
+      .replace(/[^A-Z0-9_-]+/g,'-')
+      .replace(/^-+|-+$/g,'')
+      .slice(0,40);
+    return normalized||'PADRAO';
+  };
+
+  const currentRoom=()=>normalizeTableCode(
+    new URLSearchParams(location.search).get('mesa') ||
+    localStorage.getItem('master_table_code') ||
+    'PADRAO'
+  );
+
+  let editorSocket=null;
+  let players=new Map();
+  let current=null;
+  let currentFullData=null;
+  let dirty=false;
+  let saving=false;
+  let refreshing=false;
+  let remotePending=false;
+  let ignoreUpdatesUntil=0;
+  let saveTimer=null;
+  let playerHtmlPromise=null;
+
+  function ensureSocket(){
+    if(editorSocket) return editorSocket;
+
+    editorSocket=io({autoConnect:true});
+
+    editorSocket.on('connect',()=>announce());
+    editorSocket.on('players_snapshot',cachePlayers);
+    editorSocket.on('gm:players',cachePlayers);
+    editorSocket.on('gm:player_sheet',cachePlayer);
+
+    editorSocket.on('update_mestre',player=>{
+      cachePlayer(player);
+
+      if(!current || String(player?.codigo||'')!==String(current.codigo||'')) return;
+      if(Date.now()<ignoreUpdatesUntil) return;
+
+      if(dirty || saving){
+        remotePending=true;
+        setEditorStatus('O jogador alterou a ficha enquanto você edita. Salve ou clique em Atualizar.',true);
+        return;
+      }
+
+      refreshCurrentFromServer(false);
+    });
+
+    editorSocket.on('player_disconnected',data=>{
+      if(current && String(data?.codigo||'')===String(current.codigo||'')){
+        setEditorStatus('Jogador desconectado. Você ainda pode editar; as mudanças ficarão salvas.',true);
+      }
+    });
+
+    return editorSocket;
+  }
+
+  function announce(){
+    const s=ensureSocket();
+    s.emit('master_ready',{mesa:currentRoom()},res=>{
+      if(res?.ok && Array.isArray(res.players)) cachePlayers(res.players);
+    });
+  }
+
+  function cachePlayers(list){
+    if(!Array.isArray(list)) return;
+    for(const player of list) cachePlayer(player);
+    injectButtons();
+  }
+
+  function cachePlayer(player){
+    if(!player) return;
+    const id=Number(player.dbId||player.id||0);
+    if(id) players.set(id,{...(players.get(id)||{}),...player});
+  }
+
+  function request(event,data){
+    return new Promise((resolve,reject)=>{
+      const s=ensureSocket();
+
+      const run=()=>s.emit(event,data,res=>{
+        if(res?.ok) resolve(res);
+        else reject(new Error(res?.error||'Falha na comunicação com a mesa.'));
+      });
+
+      if(s.connected) run();
+      else{
+        const timeout=setTimeout(()=>reject(new Error('Servidor indisponível.')),15000);
+        s.once('connect',()=>{
+          clearTimeout(timeout);
+          announce();
+          setTimeout(run,80);
+        });
+      }
+    });
+  }
+
+  function ensureModal(){
+    if($('#gmFullSheetModal')) return;
+
+    const style=document.createElement('style');
+    style.textContent=`
+      #gmFullSheetModal{
+        position:fixed;inset:0;z-index:5000;display:none;
+        background:rgba(0,0,0,.88);backdrop-filter:blur(7px);padding:10px
+      }
+      #gmFullSheetModal.open{display:flex}
+      .gm-full-sheet-shell{
+        position:relative;width:min(1700px,100%);height:calc(100dvh - 20px);margin:auto;
+        display:flex;flex-direction:column;border:1px solid #4b514c;border-top:3px solid var(--haz,#f0d900);
+        background:#070a08;box-shadow:0 30px 100px #000
+      }
+      .gm-full-sheet-head{
+        display:flex;align-items:center;gap:10px;padding:9px 11px;
+        border-bottom:1px solid #303632;background:linear-gradient(90deg,#171b18,#080a09);flex-wrap:wrap
+      }
+      .gm-full-sheet-title{min-width:220px;margin-right:auto}
+      .gm-full-sheet-title strong{
+        display:block;color:#f1e985;font:900 17px/1 "Arial Narrow",Arial,sans-serif;text-transform:uppercase
+      }
+      .gm-full-sheet-title small{
+        display:block;margin-top:4px;color:#89948c;font:700 8px/1.3 Consolas,monospace
+      }
+      .gm-full-sheet-actions{display:flex;gap:6px;flex-wrap:wrap}
+      .gm-full-sheet-actions button{min-height:30px!important;padding:6px 8px!important;font-size:8px!important}
+      #gmFullSheetFrame{width:100%;min-height:0;flex:1;border:0;background:#020302}
+      .gm-full-sheet-loading{
+        position:absolute;inset:53px 0 0;display:grid;place-items:center;background:#050706;
+        color:#d9d6a0;font:800 10px Consolas,monospace;text-transform:uppercase;z-index:2
+      }
+      .gm-full-sheet-loading[hidden]{display:none}
+      .gm-player-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:auto}
+      .gm-player-card-actions .gm-player-manage{margin-top:0!important}
+      .gm-player-full-sheet{
+        min-height:34px!important;border-color:#486f44!important;
+        background:rgba(92,145,82,.10)!important;color:#b8dcb1!important
+      }
+      .gm-player-full-sheet:hover{
+        border-color:#82bd76!important;background:rgba(92,145,82,.20)!important;color:#fff!important
+      }
+      @media(max-width:650px){
+        #gmFullSheetModal{padding:0}
+        .gm-full-sheet-shell{height:100dvh}
+        .gm-full-sheet-head{padding:7px}
+        .gm-full-sheet-title{width:100%}
+        .gm-full-sheet-actions{width:100%}
+        .gm-full-sheet-actions button{flex:1}
+        .gm-player-card-actions{grid-template-columns:1fr}
+      }
+    `;
+    document.head.appendChild(style);
+
+    const modal=document.createElement('div');
+    modal.id='gmFullSheetModal';
+    modal.innerHTML=`
+      <section class="gm-full-sheet-shell">
+        <header class="gm-full-sheet-head">
+          <div class="gm-full-sheet-title">
+            <strong id="gmFullSheetTitle">Ficha completa</strong>
+            <small id="gmFullSheetStatus">Aguardando jogador...</small>
+          </div>
+          <div class="gm-full-sheet-actions">
+            <button type="button" id="gmFullSheetRefresh">Atualizar</button>
+            <button type="button" id="gmFullSheetClose">Fechar</button>
+          </div>
+        </header>
+
+        <div class="gm-full-sheet-loading" id="gmFullSheetLoading">
+          Carregando ficha completa...
+        </div>
+
+        <iframe id="gmFullSheetFrame" title="Ficha completa do jogador"></iframe>
+      </section>
+    `;
+    document.body.appendChild(modal);
+
+    $('#gmFullSheetClose').onclick=closeEditor;
+    $('#gmFullSheetRefresh').onclick=()=>refreshCurrentFromServer(true);
+
+    modal.addEventListener('click',e=>{
+      if(e.target===modal) closeEditor();
+    });
+
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape' && modal.classList.contains('open')) closeEditor();
+    });
+  }
+
+  function setEditorStatus(text,warn=false){
+    const el=$('#gmFullSheetStatus');
+    if(!el) return;
+    el.textContent=text;
+    el.style.color=warn?'#e6ba72':'#89948c';
+  }
+
+  function showLoading(show,text='Carregando ficha completa...'){
+    const el=$('#gmFullSheetLoading');
+    if(!el) return;
+    el.textContent=text;
+    el.hidden=!show;
+  }
+
+  async function getPlayerPageHtml(){
+    if(playerHtmlPromise) return playerHtmlPromise;
+
+    playerHtmlPromise=fetch('/jogador',{cache:'no-store'})
+      .then(r=>{
+        if(!r.ok) throw new Error('Não foi possível abrir a interface da ficha.');
+        return r.text();
+      })
+      .then(html=>{
+        // A ficha embutida usa o visual e toda a lógica normal,
+        // mas não abre uma segunda conexão de jogador.
+        html=html.replace(
+          /<script[^>]+src=["']\/socket\.io\/socket\.io\.js["'][^>]*><\/script>/gi,''
+        );
+        html=html.replace(
+          /<script[^>]+src=["']\/shared\/player-live\.js["'][^>]*><\/script>/gi,''
+        );
+        html=html.replace(/<head([^>]*)>/i,'<head$1><base href="/">');
+        html=html.replace(
+          /<\/head>/i,
+          '<style id="gm-embedded-sheet-style">#livePlayerPanel{display:none!important}body{padding-bottom:50px!important}</style></head>'
+        );
+        return html;
+      });
+
+    return playerHtmlPromise;
+  }
+
+  async function loadEditorPlayer(player){
+    ensureModal();
+
+    current=player;
+    currentFullData=player.fullData||{};
+    dirty=false;
+    remotePending=false;
+
+    $('#gmFullSheetTitle').textContent=
+      `${player.characterName||player.nome||'Agente'} • Ficha completa`;
+
+    setEditorStatus('Preparando a ficha...');
+    showLoading(true);
+
+    const frame=$('#gmFullSheetFrame');
+    const html=await getPlayerPageHtml();
+
+    await new Promise((resolve,reject)=>{
+      let done=false;
+
+      frame.onload=()=>{
+        if(done) return;
+        done=true;
+        resolve();
+      };
+
+      frame.srcdoc=html;
+
+      setTimeout(()=>{
+        if(!done) reject(new Error('A ficha demorou demais para abrir.'));
+      },20000);
+    });
+
+    const w=frame.contentWindow;
+    const d=frame.contentDocument;
+
+    if(!w || !d || typeof w.hydrate!=='function' || typeof w.collect!=='function'){
+      throw new Error('A ficha carregou, mas o editor completo não ficou disponível.');
+    }
+
+    // A cópia dentro do Escudo não grava o backup local do navegador do mestre.
+    // Todo salvamento passa automaticamente pelo servidor.
+    w.save=function(){
+      scheduleFrameSave();
+      return true;
+    };
+
+    w.hydrate(currentFullData);
+    if(typeof w.calc==='function') w.calc();
+
+    const markDirty=()=>{
+      dirty=true;
+      setEditorStatus('Alterações locais • salvando automaticamente...');
+      scheduleFrameSave();
+    };
+
+    d.addEventListener('input',markDirty,true);
+    d.addEventListener('change',markDirty,true);
+    d.addEventListener('click',e=>{
+      if(e.target.closest('button')){
+        setTimeout(()=>{
+          dirty=true;
+          setEditorStatus('Alteração detectada • salvando automaticamente...');
+          scheduleFrameSave();
+        },40);
+      }
+    },true);
+
+    showLoading(false);
+    setEditorStatus('Salvamento automático ativo • ficha sincronizada com o jogador.');
+  }
+
+  function scheduleFrameSave(){
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(()=>saveFromFrame(false),400);
+  }
+
+  function resourceMax(doc,resource){
+    const card=doc.querySelector(`.res[data-resource="${resource}"]`);
+    const input=card?.querySelector('[data-resource-max]');
+    if(input) return n(input.value);
+    return n(card?.dataset.max);
+  }
+
+  function buildSummary(w,fullData){
+    const d=w.document;
+    const field=k=>d.querySelector(`[data-k="${k}"]`)?.value ??
+      fullData?.fields?.[k] ?? '';
+
+    let conditions=[];
+
+    try{
+      if(Array.isArray(w.CONDITIONS)){
+        conditions=w.CONDITIONS.filter(
+          (name,i)=>d.querySelector(`[data-k="cond_${i}"]`)?.checked
+        );
+      }
+    }catch{}
+
+    return {
+      ...(current?.summary||{}),
+      playerName:String(field('player')||''),
+      characterName:String(field('name')||'Agente'),
+      nex:n(field('nex')),
+      className:String(field('class')||''),
+      origin:String(field('origin')||''),
+      trail:String(field('trail')||''),
+      level:n(field('level')),
+      defense:n(d.querySelector('#actionDefense')?.textContent,current?.summary?.defense||0),
+      pv:n(field('pvCur')),
+      pvMax:resourceMax(d,'PV'),
+      san:n(field('sanCur')),
+      sanMax:resourceMax(d,'SAN'),
+      pe:n(field('peCur')),
+      peMax:resourceMax(d,'PE'),
+      radiation:n(field('radiation')),
+      conditions,
+      inventoryCount:Array.isArray(fullData?.lists?.inventory)
+        ? fullData.lists.inventory.length
+        : (current?.summary?.inventoryCount||0),
+      ritualCount:Array.isArray(fullData?.lists?.rituals)
+        ? fullData.lists.rituals.length
+        : (current?.summary?.ritualCount||0),
+      powerCount:Array.isArray(fullData?.lists?.powers)
+        ? fullData.lists.powers.length
+        : (current?.summary?.powerCount||0),
+      portrait:fullData?.fields?.portraitData||'',
+      updatedAt:new Date().toISOString()
+    };
+  }
+
+  async function saveFromFrame(manual=false){
+    if(!current || saving) return;
+
+    const frame=$('#gmFullSheetFrame');
+    const w=frame?.contentWindow;
+
+    if(!w || typeof w.collect!=='function') return;
+
+    clearTimeout(saveTimer);
+    saving=true;
+
+    setEditorStatus(manual?'Salvando ficha completa...':'Sincronizando alterações...');
+
+    try{
+      const fullData=w.collect();
+      const summary=buildSummary(w,fullData);
+
+      ignoreUpdatesUntil=Date.now()+900;
+
+      const result=await request('master_update_player',{
+        mesa:currentRoom(),
+        codigo:current.codigo,
+        id:current.codigo,
+        fullData,
+        sheet:fullData,
+        summary,
+        foto:fullData?.fields?.portraitData||''
+      });
+
+      currentFullData=fullData;
+      current={...current,...(result.player||{}),summary,codigo:current.codigo};
+      cachePlayer(current);
+
+      dirty=false;
+      remotePending=false;
+
+      setEditorStatus('Salvo automaticamente • ficha do jogador atualizada.');
+
+      if(typeof window.toast==='function'){
+        window.toast('Ficha completa sincronizada');
+      }
+    }catch(error){
+      dirty=true;
+      setEditorStatus(error.message||'Falha ao salvar a ficha.',true);
+    }finally{
+      saving=false;
+    }
+  }
+
+  async function refreshCurrentFromServer(force=false){
+    if(!current || refreshing) return;
+
+    if(dirty && !force){
+      remotePending=true;
+      return;
+    }
+
+    if(dirty && force){
+      const ok=confirm(
+        'Existem alterações locais ainda não salvas. Atualizar e descartá-las?'
+      );
+      if(!ok) return;
+    }
+
+    refreshing=true;
+    showLoading(true,'Atualizando ficha...');
+
+    try{
+      const result=await request('request_player',{
+        mesa:currentRoom(),
+        codigo:current.codigo
+      });
+
+      if(!result.player?.fullData){
+        throw new Error('O servidor não retornou a ficha completa.');
+      }
+
+      current={...current,...result.player};
+      currentFullData=result.player.fullData;
+
+      const w=$('#gmFullSheetFrame')?.contentWindow;
+
+      if(w && typeof w.hydrate==='function'){
+        w.hydrate(currentFullData);
+        if(typeof w.calc==='function') w.calc();
+      }
+
+      dirty=false;
+      remotePending=false;
+      setEditorStatus('Atualizado com a versão mais recente do jogador.');
+    }catch(error){
+      setEditorStatus(error.message||'Falha ao atualizar.',true);
+    }finally{
+      refreshing=false;
+      showLoading(false);
+    }
+  }
+
+  async function closeEditor(){
+    const modal=$('#gmFullSheetModal');
+    if(!modal) return;
+
+    clearTimeout(saveTimer);
+
+    // Ao fechar, qualquer alteração pendente é salva automaticamente.
+    if(dirty && current && !saving){
+      setEditorStatus('Salvando antes de fechar...');
+      await saveFromFrame(false);
+    }
+
+    // Se ainda houver salvamento em andamento, aguarda um curto período.
+    if(saving){
+      const started=Date.now();
+      while(saving && Date.now()-started<5000){
+        await new Promise(resolve=>setTimeout(resolve,50));
+      }
+    }
+
+    modal.classList.remove('open');
+    $('#gmFullSheetFrame').srcdoc='';
+
+    current=null;
+    currentFullData=null;
+    dirty=false;
+    saving=false;
+    remotePending=false;
+
+    document.body.style.overflow='';
+  }
+
+  async function openEditorById(id){
+    ensureModal();
+
+    const modal=$('#gmFullSheetModal');
+    modal.classList.add('open');
+    document.body.style.overflow='hidden';
+
+    showLoading(true);
+    setEditorStatus('Localizando ficha...');
+
+    try{
+      announce();
+
+      let player=players.get(Number(id));
+
+      if(!player?.codigo){
+        const ready=await request('master_ready',{mesa:currentRoom()});
+        cachePlayers(ready.players||[]);
+        player=players.get(Number(id));
+      }
+
+      if(!player?.codigo){
+        throw new Error(
+          'Não consegui localizar o código desta ficha. Sincronize a mesa e tente novamente.'
+        );
+      }
+
+      const result=await request('request_player',{
+        mesa:currentRoom(),
+        codigo:player.codigo
+      });
+
+      if(!result.player?.fullData){
+        throw new Error(
+          'A ficha completa ainda não foi enviada pelo jogador. Clique em Sincronizar e tente novamente.'
+        );
+      }
+
+      cachePlayer(result.player);
+      await loadEditorPlayer(result.player);
+
+    }catch(error){
+      showLoading(false);
+      setEditorStatus(error.message||'Não foi possível abrir a ficha.',true);
+    }
+  }
+
+  function injectButtons(){
+    const box=$('#liveGMPlayers');
+    if(!box) return;
+
+    for(const card of $$('.gm-connected-player-card',box)){
+      if(card.querySelector('.gm-player-full-sheet')) continue;
+
+      const quick=card.querySelector('.gm-player-manage');
+      if(!quick) continue;
+
+      const match=String(quick.getAttribute('onclick')||'').match(/\((\d+)\)/);
+      if(!match) continue;
+
+      const id=Number(match[1]);
+
+      const actions=document.createElement('div');
+      actions.className='gm-player-card-actions';
+
+      const full=document.createElement('button');
+      full.type='button';
+      full.className='gm-player-full-sheet';
+      full.textContent='Ficha completa';
+      full.onclick=()=>openEditorById(id);
+
+      quick.textContent='Ajustes rápidos';
+
+      quick.parentNode.insertBefore(actions,quick);
+      actions.append(full,quick);
+    }
+  }
+
+  ensureModal();
+  ensureSocket();
+
+  const observer=new MutationObserver(injectButtons);
+
+  const begin=()=>{
+    const box=$('#liveGMPlayers');
+
+    if(box){
+      observer.observe(box,{childList:true,subtree:true});
+      injectButtons();
+      announce();
+    }else{
+      setTimeout(begin,120);
+    }
+  };
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',begin);
+  }else{
+    begin();
+  }
+
+  window.openFullPlayerSheet=openEditorById;
+})();
+</script>
+
+<script id="gm-global-autosave">
+(()=>{
+  'use strict';
+
+  // O Escudo também passa a salvar automaticamente seu próprio estado local.
+  let timer=null;
+  let lastSavedAt=0;
+
+  function scheduleMasterAutosave(){
+    clearTimeout(timer);
+    timer=setTimeout(()=>{
+      try{
+        if(typeof window.saveState==='function'){
+          window.saveState(false);
+          lastSavedAt=Date.now();
+        }
+      }catch{}
+    },450);
+  }
+
+  document.addEventListener('input',e=>{
+    if(e.target.closest('#gmFullSheetModal')) return;
+    scheduleMasterAutosave();
+  },true);
+
+  document.addEventListener('change',e=>{
+    if(e.target.closest('#gmFullSheetModal')) return;
+    scheduleMasterAutosave();
+  },true);
+
+  document.addEventListener('click',e=>{
+    if(e.target.closest('#gmFullSheetModal')) return;
+    if(e.target.closest('button')){
+      setTimeout(scheduleMasterAutosave,80);
+    }
+  },true);
+
+  window.addEventListener('beforeunload',()=>{
+    try{
+      if(typeof window.saveState==='function') window.saveState(false);
+    }catch{}
+  });
+
+  // Indicador discreto de que o salvamento é automático.
+  window.addEventListener('load',()=>{
+    const toolbar=document.querySelector('.toolbar');
+    if(!toolbar || document.getElementById('gmAutosaveBadge')) return;
+
+    const badge=document.createElement('span');
+    badge.id='gmAutosaveBadge';
+    badge.textContent='SALVAMENTO AUTOMÁTICO';
+    badge.style.cssText=[
+      'display:inline-flex','align-items:center','min-height:31px','padding:6px 9px',
+      'border:1px solid #3f6840','border-radius:4px','background:#0d1a0e',
+      'color:#91c78b','font:800 8px/1 Consolas,monospace','letter-spacing:.06em'
+    ].join(';');
+
+    toolbar.prepend(badge);
+  });
+})();
+</script>
+
 </body>
 </html>
