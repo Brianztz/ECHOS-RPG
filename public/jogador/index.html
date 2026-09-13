@@ -4500,6 +4500,738 @@ h3,
 }
 </style>
 
+
+<style id="opr-final-visual-polish">
+/* ==========================================================
+   ORDEM PARANORMAL — POLIMENTO VISUAL FINAL
+   Mantém a identidade original: verde musgo, metal, oliva,
+   arquivo confidencial, maleta tática e acentos de recurso.
+   ========================================================== */
+
+:root{
+  --opr-bg:#09100d;
+  --opr-panel:#111915;
+  --opr-panel-2:#17221c;
+  --opr-panel-3:#0c130f;
+  --opr-line:#435047;
+  --opr-line-soft:#2d3932;
+  --opr-ink:#eef1eb;
+  --opr-muted:#8f9c94;
+  --opr-olive:#aaa37d;
+  --opr-olive-2:#77755a;
+  --opr-brass:#c6bd83;
+  --opr-steel:#73847a;
+  --opr-green:#78966f;
+  --opr-red:#d24a52;
+  --opr-blue:#4b8ec8;
+  --opr-yellow:#b7ae2f;
+  --opr-shadow:0 18px 46px rgba(0,0,0,.42);
+  --opr-shadow-soft:0 9px 24px rgba(0,0,0,.28);
+}
+
+/* base */
+html{
+  scroll-behavior:smooth;
+}
+body{
+  color:var(--opr-ink) !important;
+}
+.app{
+  max-width:1560px !important;
+  padding:18px 20px 72px !important;
+}
+
+/* Cabeçalho — preserva a linguagem de documento confidencial */
+.top{
+  position:relative !important;
+  min-height:118px !important;
+  padding:20px 22px 22px !important;
+  border:1px solid rgba(126,145,133,.52) !important;
+  border-top:2px solid #a9a17c !important;
+  border-radius:8px !important;
+  background:
+    linear-gradient(105deg,rgba(24,35,29,.97),rgba(8,14,11,.97) 70%) !important;
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.46),
+    inset 0 1px rgba(255,255,255,.035) !important;
+  overflow:hidden !important;
+}
+.top:before{
+  opacity:.58 !important;
+  filter:saturate(.55) !important;
+}
+.top:after{
+  height:4px !important;
+  opacity:.62 !important;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(168,162,120,.95) 0 13px,
+      rgba(18,25,21,.95) 13px 26px
+    ) !important;
+}
+.brand{
+  min-width:min(560px,100%) !important;
+}
+.brand small{
+  color:#bdb690 !important;
+  font-weight:700 !important;
+  letter-spacing:.25em !important;
+}
+.brand h1{
+  margin:10px 0 8px !important;
+  color:#f3f5ef !important;
+  text-shadow:0 2px 0 #000,0 8px 24px rgba(0,0,0,.32) !important;
+  letter-spacing:.045em !important;
+}
+.brand h1:after{
+  color:#aaa581 !important;
+  opacity:.92 !important;
+}
+.dossier-line{
+  gap:9px 18px !important;
+  padding-top:3px !important;
+}
+.dossier-line span{
+  color:#74837a !important;
+}
+.dossier-line b{
+  color:#d6dbd4 !important;
+}
+
+.toolbar{
+  gap:7px !important;
+  align-items:center !important;
+}
+.toolbar button,
+.toolbar .filebtn{
+  min-height:36px !important;
+  border-radius:5px !important;
+  padding:9px 12px !important;
+  background:
+    linear-gradient(180deg,rgba(48,61,53,.95),rgba(24,33,28,.97)) !important;
+  border-color:#4e6055 !important;
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.04),
+    0 4px 10px rgba(0,0,0,.18) !important;
+}
+.toolbar button:hover,
+.toolbar .filebtn:hover{
+  border-color:#9e9878 !important;
+  background:
+    linear-gradient(180deg,rgba(68,78,64,.98),rgba(32,42,35,.98)) !important;
+}
+#autoSaveBadge{
+  cursor:default !important;
+  color:#d8d5b1 !important;
+  border-color:#6a704d !important;
+  background:
+    linear-gradient(180deg,rgba(49,55,30,.9),rgba(25,31,19,.96)) !important;
+  box-shadow:inset 3px 0 #888856 !important;
+}
+
+/* Identidade do agente */
+.identity-mount{
+  margin-top:12px !important;
+}
+.identity-card{
+  border-radius:8px !important;
+  overflow:hidden !important;
+  border:1px solid #536157 !important;
+  box-shadow:var(--opr-shadow) !important;
+  background:
+    linear-gradient(145deg,rgba(31,43,36,.975),rgba(11,18,14,.985)) !important;
+}
+.identity-card>h2{
+  margin:0 !important;
+  padding:12px 16px !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(133,145,134,.28) !important;
+  background:
+    linear-gradient(90deg,rgba(161,154,112,.14),rgba(35,47,39,.82) 45%,rgba(15,22,18,.78)) !important;
+}
+.identity-card>h2:after{
+  display:none !important;
+}
+.identity-layout{
+  gap:18px !important;
+}
+.portrait-box{
+  border:1px solid #7e8167 !important;
+  border-radius:7px !important;
+  background:
+    radial-gradient(circle at 50% 30%,rgba(142,151,126,.16),transparent 52%),
+    linear-gradient(145deg,#111a15,#080d0a) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.025),
+    0 9px 20px rgba(0,0,0,.28) !important;
+}
+.portrait-box:before{
+  inset:6px !important;
+  border-color:rgba(187,181,138,.55) !important;
+  border-radius:5px !important;
+}
+.identity-fields label{
+  color:#93a199 !important;
+}
+
+/* Navegação */
+.tabs{
+  top:6px !important;
+  z-index:40 !important;
+  margin:10px 0 14px !important;
+  padding:3px !important;
+  gap:3px !important;
+  border:1px solid rgba(91,107,97,.62) !important;
+  border-radius:7px !important;
+  background:rgba(8,14,11,.91) !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.24) !important;
+  backdrop-filter:blur(14px) saturate(115%) !important;
+}
+.tabs button{
+  min-height:44px !important;
+  border:1px solid transparent !important;
+  border-radius:5px !important;
+  background:transparent !important;
+  color:#87958c !important;
+  transition:
+    color .16s ease,
+    border-color .16s ease,
+    background .16s ease !important;
+}
+.tabs button:hover{
+  color:#dce2dc !important;
+  border-color:#35443b !important;
+  background:rgba(58,71,62,.34) !important;
+  transform:none !important;
+}
+.tabs button.active{
+  color:#f4f4ed !important;
+  border-color:#6e755f !important;
+  background:
+    linear-gradient(180deg,rgba(126,127,91,.28),rgba(62,71,58,.22)) !important;
+  box-shadow:
+    inset 0 -2px #aaa37d,
+    0 3px 10px rgba(0,0,0,.18) !important;
+}
+.tabnum{
+  color:#bcb88f !important;
+}
+
+/* Cards gerais */
+.card{
+  border:1px solid #3f4d44 !important;
+  border-radius:8px !important;
+  background:
+    linear-gradient(145deg,rgba(25,35,29,.96),rgba(10,16,13,.985)) !important;
+  box-shadow:
+    var(--opr-shadow-soft),
+    inset 0 1px rgba(255,255,255,.025) !important;
+}
+.card:before{
+  width:54px !important;
+  height:2px !important;
+  background:linear-gradient(90deg,#b6ae81,rgba(182,174,129,0)) !important;
+  box-shadow:none !important;
+}
+h2{
+  color:#e8ece6 !important;
+  letter-spacing:.045em !important;
+}
+h2:after{
+  background:#9a9574 !important;
+}
+h3{
+  color:#c8c19b !important;
+}
+.hint,.small{
+  color:#85948b !important;
+}
+
+/* Inputs e botões */
+input,select,textarea{
+  border:1px solid #45564c !important;
+  border-radius:5px !important;
+  background:
+    linear-gradient(180deg,rgba(11,19,15,.98),rgba(13,22,17,.98)) !important;
+  color:#edf1eb !important;
+  box-shadow:
+    inset 0 1px 5px rgba(0,0,0,.3) !important;
+}
+input:hover,select:hover,textarea:hover{
+  border-color:#65776d !important;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:#a39d78 !important;
+  box-shadow:
+    0 0 0 3px rgba(163,157,120,.11),
+    inset 0 1px 4px rgba(0,0,0,.28) !important;
+}
+button,.filebtn{
+  border-radius:5px !important;
+}
+button:focus-visible,.filebtn:focus-visible,
+input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid rgba(201,194,147,.7) !important;
+  outline-offset:2px !important;
+}
+
+/* Recursos — mais legíveis, mantendo as cores originais */
+.resources{
+  gap:13px !important;
+}
+.resources>.res{
+  position:relative !important;
+  min-height:112px !important;
+  padding:13px 14px 12px !important;
+  border:1px solid #3d4a42 !important;
+  border-radius:7px !important;
+  background:
+    linear-gradient(180deg,rgba(24,33,28,.98),rgba(10,15,12,.99)) !important;
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.25),
+    inset 0 1px rgba(255,255,255,.025) !important;
+}
+.resources>.res:after{
+  content:"" !important;
+  position:absolute !important;
+  left:0 !important;
+  top:0 !important;
+  width:100% !important;
+  height:2px !important;
+  opacity:.92 !important;
+}
+.resources>.res[data-resource="PV"]:after{
+  background:linear-gradient(90deg,#db4c55,rgba(219,76,85,.06)) !important;
+}
+.resources>.res[data-resource="SAN"]:after{
+  background:linear-gradient(90deg,#4f98d8,rgba(79,152,216,.06)) !important;
+}
+.resources>.res[data-resource="PE"]:after{
+  background:linear-gradient(90deg,#b9b031,rgba(185,176,49,.06)) !important;
+}
+.resources>.res label{
+  margin-bottom:7px !important;
+  color:#c7cec9 !important;
+  font-size:9px !important;
+  letter-spacing:.13em !important;
+}
+.resource-meter-row{
+  gap:9px !important;
+}
+.res[data-resource="PV"] .liquid-meter,
+.res[data-resource="SAN"] .liquid-meter,
+.res[data-resource="PE"] .meter{
+  border-color:#42534a !important;
+  background:
+    linear-gradient(180deg,#07100c,#0b1510) !important;
+  box-shadow:
+    inset 0 2px 7px rgba(0,0,0,.72),
+    0 0 0 1px rgba(255,255,255,.015) !important;
+}
+.resources .resource-meter-row .resAdjust{
+  border-color:#465950 !important;
+  background:
+    linear-gradient(180deg,#1b2922,#101913) !important;
+}
+.resources .resource-meter-row .resAdjust:hover{
+  border-color:#839083 !important;
+  background:
+    linear-gradient(180deg,#2c3a32,#17231d) !important;
+}
+.radiation-resource,
+.pe-limit-card{
+  border-radius:7px !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.23) !important;
+}
+
+/* Atributos */
+.attributes-card .attrs{
+  gap:9px !important;
+}
+.attributes-card .attr{
+  border:1px solid #64715f !important;
+  border-radius:7px !important;
+  background:
+    radial-gradient(circle at 50% 30%,rgba(151,157,117,.13),transparent 55%),
+    linear-gradient(145deg,#17231d,#0c1410) !important;
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.025),
+    0 5px 14px rgba(0,0,0,.2) !important;
+}
+.attributes-card .attr:hover{
+  border-color:#8e9278 !important;
+}
+.attributes-card .attr label{
+  color:#b6beb8 !important;
+}
+.attributes-card .attr input{
+  color:#f4f5ef !important;
+}
+
+/* Perícias */
+.skills-card .skill{
+  border:1px solid #37463e !important;
+  border-left:2px solid #77765b !important;
+  border-radius:6px !important;
+  background:
+    linear-gradient(145deg,rgba(21,31,26,.96),rgba(10,16,13,.98)) !important;
+  box-shadow:0 4px 12px rgba(0,0,0,.16) !important;
+}
+.skills-card .skill:hover{
+  border-color:#66766c !important;
+  border-left-color:#aaa37d !important;
+  background:
+    linear-gradient(145deg,rgba(31,43,36,.98),rgba(13,21,17,.99)) !important;
+}
+.skills-card .skillName{
+  color:#dfe5df !important;
+}
+.skills-card .skillRoll{
+  border-color:#657866 !important;
+  background:#1a2a22 !important;
+  color:#ced7d0 !important;
+  box-shadow:0 0 0 3px rgba(112,128,115,.08) !important;
+}
+.skills-card .skillRoll:hover{
+  border-color:#aaa37d !important;
+  background:#353923 !important;
+  color:#fff !important;
+}
+
+/* Defesa e condições */
+.actions-card{
+  border-color:#435149 !important;
+}
+.defense-value{
+  border:1px solid #3a4941 !important;
+  border-radius:6px !important;
+  background:
+    radial-gradient(circle at 50% 35%,rgba(170,163,125,.10),transparent 60%),
+    #0c1511 !important;
+  color:#d9d6b0 !important;
+}
+.condition-trigger{
+  border-color:#5f6346 !important;
+  background:
+    linear-gradient(180deg,#2b3020,#181c12) !important;
+  color:#e9e5bd !important;
+}
+
+/* Maleta / inventário */
+.case-card{
+  border-color:#49584f !important;
+}
+.case-layout{
+  gap:18px !important;
+}
+.case-shell{
+  border-radius:9px !important;
+  border-color:#59655b !important;
+  background:
+    linear-gradient(145deg,#38443a,#17221c) !important;
+  box-shadow:
+    inset 0 0 0 2px #111915,
+    inset 0 0 42px rgba(0,0,0,.62),
+    0 16px 34px rgba(0,0,0,.38) !important;
+}
+.case-grid{
+  border-radius:5px !important;
+  border-color:#697267 !important;
+  background:#0b120e !important;
+}
+.case-cell{
+  border-color:#354139 !important;
+  background:
+    linear-gradient(145deg,#1c2822,#101813) !important;
+}
+.case-cell:hover,.case-cell:focus-visible{
+  border-color:#8f8c6c !important;
+  background:#2d3427 !important;
+}
+.case-item{
+  border-color:#7a887c !important;
+  border-radius:5px !important;
+  background:
+    linear-gradient(145deg,#526055,#29362f) !important;
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.045),
+    0 5px 12px rgba(0,0,0,.36) !important;
+}
+.case-item:hover{
+  border-color:#b0aa83 !important;
+  background:
+    linear-gradient(145deg,#63705f,#333f36) !important;
+}
+.case-side{
+  border:1px solid #435149 !important;
+  border-radius:7px !important;
+  background:
+    linear-gradient(180deg,rgba(18,27,22,.98),rgba(9,14,11,.99)) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.02) !important;
+}
+.case-stats,
+.case-selection{
+  border-color:#35433b !important;
+  background:#0c1511 !important;
+}
+.case-new-primary,
+.case-item-confirm,
+.ritual-add-primary{
+  border-color:#a39e77 !important;
+  background:
+    linear-gradient(180deg,#8e9070,#62684f) !important;
+  color:#101510 !important;
+}
+
+/* Poderes e rituais */
+.power-card-grid,
+.ritual-card-grid{
+  gap:11px !important;
+}
+.power-card,
+.ritual-card{
+  border:1px solid #435149 !important;
+  border-radius:7px !important;
+  background:
+    linear-gradient(145deg,rgba(28,39,33,.97),rgba(11,18,14,.99)) !important;
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.24),
+    inset 0 1px rgba(255,255,255,.022) !important;
+  transition:
+    border-color .16s ease,
+    background .16s ease,
+    box-shadow .16s ease !important;
+}
+.power-card:hover,
+.ritual-card:hover{
+  border-color:#737e72 !important;
+  background:
+    linear-gradient(145deg,rgba(37,49,42,.98),rgba(14,22,18,.99)) !important;
+  box-shadow:
+    0 12px 26px rgba(0,0,0,.3),
+    inset 0 1px rgba(255,255,255,.025) !important;
+}
+.power-card-kind,
+.ritual-card-meta{
+  color:#9eaaa2 !important;
+}
+.ritual-card-sigil{
+  opacity:.13 !important;
+  filter:saturate(.65) !important;
+}
+
+/* Catálogos */
+.power-catalog-panel,
+.ritual-catalog-panel,
+.ritual-rules-panel{
+  border-radius:8px !important;
+  border-color:#546158 !important;
+  background:
+    linear-gradient(155deg,rgba(30,43,35,.99),rgba(10,17,13,.995)) !important;
+}
+.power-catalog-list,
+.ritual-catalog-list{
+  border-color:#34423a !important;
+  background:#0b120e !important;
+}
+.power-entry,
+.ritual-entry{
+  border-color:#37473e !important;
+  border-radius:5px !important;
+  background:#111b16 !important;
+}
+.power-entry:hover,
+.power-entry.active,
+.ritual-entry:hover,
+.ritual-entry.active{
+  border-color:#88876a !important;
+  background:#282d20 !important;
+}
+
+/* Pistas */
+.clue-private-note{
+  border-radius:6px !important;
+  border-color:#3f4d45 !important;
+  background:
+    linear-gradient(180deg,rgba(25,36,30,.95),rgba(12,18,15,.98)) !important;
+}
+.clue-chip{
+  border-radius:4px !important;
+}
+.clue-board-card{
+  border-radius:8px !important;
+  border-color:#46554c !important;
+  box-shadow:var(--opr-shadow) !important;
+}
+.clue-board-head{
+  padding:15px 17px !important;
+  background:
+    linear-gradient(180deg,rgba(35,48,40,.96),rgba(17,26,21,.97)) !important;
+}
+.clue-board-tools{
+  align-items:center !important;
+}
+.clue-board-tools button,
+#playerRecorderClueButton{
+  border-radius:5px !important;
+}
+#playerRecorderClueButton{
+  border-color:#77734e !important;
+  background:
+    linear-gradient(180deg,#32351f,#1a1e12) !important;
+  color:#dcd6a6 !important;
+}
+#playerRecorderClueButton:hover{
+  border-color:#aba37a !important;
+  background:
+    linear-gradient(180deg,#47472b,#242719) !important;
+}
+.clue-board-viewport{
+  background-color:#101813 !important;
+}
+.clue-node{
+  border-radius:7px !important;
+  background:
+    linear-gradient(145deg,rgba(32,44,37,.99),rgba(12,20,16,.995)) !important;
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.36),
+    inset 0 1px rgba(255,255,255,.02) !important;
+}
+.clue-node:hover{
+  box-shadow:
+    0 16px 32px rgba(0,0,0,.42),
+    inset 0 1px rgba(255,255,255,.025) !important;
+}
+
+/* Modais */
+.modal{
+  background:rgba(3,7,5,.79) !important;
+  backdrop-filter:blur(10px) saturate(112%) !important;
+}
+.modal-panel,
+.case-item-modal-panel{
+  border-radius:9px !important;
+  border:1px solid #59665d !important;
+  border-top:2px solid #a29c78 !important;
+  background:
+    linear-gradient(155deg,rgba(31,44,36,.99),rgba(10,17,13,.998)) !important;
+  box-shadow:0 34px 110px rgba(0,0,0,.65) !important;
+}
+.modal-head{
+  padding-bottom:12px !important;
+  border-bottom:1px solid rgba(102,119,108,.24) !important;
+}
+.modal-close{
+  border-color:#56645b !important;
+  background:#152019 !important;
+}
+.modal-close:hover{
+  border-color:#9d9877 !important;
+  background:#2a3021 !important;
+}
+
+/* Toast */
+.status{
+  border:1px solid #747552 !important;
+  border-radius:6px !important;
+  background:
+    linear-gradient(180deg,#28301e,#171d12) !important;
+  color:#e7e3b9 !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.32) !important;
+}
+
+/* Scrollbar */
+*{
+  scrollbar-width:thin;
+  scrollbar-color:#5a685e #111813;
+}
+::-webkit-scrollbar{
+  width:10px;
+  height:10px;
+}
+::-webkit-scrollbar-track{
+  background:#111813 !important;
+}
+::-webkit-scrollbar-thumb{
+  border:2px solid #111813 !important;
+  border-radius:999px !important;
+  background:#5a685e !important;
+}
+::-webkit-scrollbar-thumb:hover{
+  background:#778278 !important;
+}
+
+/* Responsividade */
+@media(max-width:1050px){
+  .app{
+    padding:12px 13px 58px !important;
+  }
+  .top{
+    padding:17px !important;
+  }
+  .toolbar{
+    justify-content:flex-start !important;
+  }
+}
+@media(max-width:760px){
+  .top{
+    min-height:auto !important;
+  }
+  .toolbar{
+    width:100% !important;
+  }
+  .toolbar>*{
+    flex:1 1 auto !important;
+  }
+  #autoSaveBadge{
+    flex:1 1 100% !important;
+    justify-content:center !important;
+  }
+  .tabs{
+    border-radius:5px !important;
+  }
+  .tabs button{
+    min-width:118px !important;
+  }
+  .clue-board-head{
+    padding:13px !important;
+  }
+}
+@media(max-width:520px){
+  .app{
+    padding:8px 8px 48px !important;
+  }
+  .top{
+    border-radius:6px !important;
+    padding:14px !important;
+  }
+  .brand h1{
+    font-size:38px !important;
+  }
+  .dossier-line{
+    display:none !important;
+  }
+  .card,
+  .identity-card,
+  .clue-board-card{
+    border-radius:6px !important;
+  }
+}
+
+/* Sem animações chamativas — só transições discretas */
+@media(prefers-reduced-motion:reduce){
+  *,
+  *:before,
+  *:after{
+    scroll-behavior:auto !important;
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+}
+</style>
+
 </head>
 <body><main class="app">
 <header class="top"><div class="brand"><small>Arquivo confidencial / Documento de agente</small><h1>ORDEM PARANORMAL</h1><div class="dossier-line"><span>Organização <b>Ordo Realitas</b></span><span>Protocolo <b>OPR–13</b></span><span>Acesso <b>Nível Ômega</b></span></div></div><div class="toolbar"><span id="autoSaveBadge" class="filebtn" style="cursor:default;border-color:#576019;color:#f0e783;background:#171604">● AUTOSAVE • ONLINE</span><button onclick="exportData()">Exportar arquivo</button><label class="filebtn">Importar arquivo<input id="import" type="file" accept="application/json" hidden></label><button onclick="resetAll()">Limpar</button></div></header>
