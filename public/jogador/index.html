@@ -4407,6 +4407,99 @@ h3,
 
 <link rel="stylesheet" href="/shared/live.css">
 <link rel="stylesheet" href="/shared/re4-case.css">
+
+<style id="resources-responsive-final-fix">
+/* Correção final do layout dos recursos.
+   Evita PV/SAN virarem colunas minúsculas em larguras intermediárias. */
+
+/* Desktop */
+.resources{
+  display:grid !important;
+  grid-template-columns:repeat(12,minmax(0,1fr)) !important;
+  gap:12px !important;
+  width:100% !important;
+}
+
+.resources > .res[data-resource="PV"]{
+  grid-column:1 / 7 !important;
+  grid-row:1 !important;
+  width:100% !important;
+  max-width:none !important;
+}
+.resources > .res[data-resource="SAN"]{
+  grid-column:7 / 13 !important;
+  grid-row:1 !important;
+  width:100% !important;
+  max-width:none !important;
+}
+.resources > .res[data-resource="PE"]{
+  grid-column:1 / 7 !important;
+  grid-row:2 !important;
+  width:100% !important;
+  max-width:none !important;
+}
+.resources > .radiation-resource{
+  grid-column:7 / 10 !important;
+  grid-row:2 !important;
+  width:100% !important;
+  max-width:none !important;
+}
+.resources > .pe-limit-card{
+  grid-column:10 / 13 !important;
+  grid-row:2 !important;
+  width:100% !important;
+  max-width:none !important;
+}
+
+/* Notebook/tablet: PV e SAN continuam dividindo a primeira linha ao meio.
+   PE ocupa a linha toda e Radiação/Limite dividem a terceira linha. */
+@media (max-width:1050px){
+  .resources{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:10px !important;
+  }
+
+  .resources > .res[data-resource="PV"]{
+    grid-column:1 !important;
+    grid-row:1 !important;
+  }
+  .resources > .res[data-resource="SAN"]{
+    grid-column:2 !important;
+    grid-row:1 !important;
+  }
+  .resources > .res[data-resource="PE"]{
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+  }
+  .resources > .radiation-resource{
+    grid-column:1 !important;
+    grid-row:3 !important;
+  }
+  .resources > .pe-limit-card{
+    grid-column:2 !important;
+    grid-row:3 !important;
+  }
+}
+
+/* Celular: tudo empilhado. */
+@media (max-width:620px){
+  .resources{
+    grid-template-columns:1fr !important;
+  }
+
+  .resources > .res[data-resource="PV"],
+  .resources > .res[data-resource="SAN"],
+  .resources > .res[data-resource="PE"],
+  .resources > .radiation-resource,
+  .resources > .pe-limit-card{
+    grid-column:1 !important;
+    grid-row:auto !important;
+    width:100% !important;
+    max-width:none !important;
+  }
+}
+</style>
+
 </head>
 <body><main class="app">
 <header class="top"><div class="brand"><small>Arquivo confidencial / Documento de agente</small><h1>ORDEM PARANORMAL</h1><div class="dossier-line"><span>Organização <b>Ordo Realitas</b></span><span>Protocolo <b>OPR–13</b></span><span>Acesso <b>Nível Ômega</b></span></div></div><div class="toolbar"><span id="autoSaveBadge" class="filebtn" style="cursor:default;border-color:#576019;color:#f0e783;background:#171604">● AUTOSAVE • ONLINE</span><button onclick="exportData()">Exportar arquivo</button><label class="filebtn">Importar arquivo<input id="import" type="file" accept="application/json" hidden></label><button onclick="resetAll()">Limpar</button></div></header>
