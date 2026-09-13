@@ -4409,8 +4409,8 @@ h3,
 <link rel="stylesheet" href="/shared/re4-case.css">
 </head>
 <body><main class="app">
-<header class="top"><div class="brand"><small>Arquivo confidencial / Documento de agente</small><h1>ORDEM PARANORMAL</h1><div class="dossier-line"><span>Organização <b>Ordo Realitas</b></span><span>Protocolo <b>OPR–13</b></span><span>Acesso <b>Nível Ômega</b></span></div></div><div class="toolbar"><button onclick="save()">Salvar ficha</button><button onclick="exportData()">Exportar arquivo</button><label class="filebtn">Importar arquivo<input id="import" type="file" accept="application/json" hidden></label><button onclick="window.print()">Imprimir / PDF</button><button onclick="resetAll()">Limpar</button></div></header>
-<div class="identity-mount" id="identityMount"></div><nav class="tabs" id="tabs"></nav><div id="pages"></div><div id="toast" class="status">Salvo neste dispositivo</div>
+<header class="top"><div class="brand"><small>Arquivo confidencial / Documento de agente</small><h1>ORDEM PARANORMAL</h1><div class="dossier-line"><span>Organização <b>Ordo Realitas</b></span><span>Protocolo <b>OPR–13</b></span><span>Acesso <b>Nível Ômega</b></span></div></div><div class="toolbar"><span id="autoSaveBadge" class="filebtn" style="cursor:default;border-color:#576019;color:#f0e783;background:#171604">● AUTOSAVE • ONLINE</span><button onclick="exportData()">Exportar arquivo</button><label class="filebtn">Importar arquivo<input id="import" type="file" accept="application/json" hidden></label><button onclick="resetAll()">Limpar</button></div></header>
+<div class="identity-mount" id="identityMount"></div><nav class="tabs" id="tabs"></nav><div id="pages"></div><div id="toast" class="status">Salvo automaticamente</div>
 <div class="modal case-item-modal" id="caseItemModal" aria-hidden="true" onclick="if(event.target===this)closeCaseItemEditor()">
   <section class="modal-panel case-item-modal-panel" role="dialog" aria-modal="true" aria-labelledby="caseFormTitle">
     <header class="case-item-modal-head">
@@ -5493,8 +5493,61 @@ function hydrate(d){Object.entries(d.fields||{}).forEach(([k,v])=>{let x=documen
 document.querySelectorAll('#powerCatalogSearch,#powerCatalogClass,#powerCatalogType').forEach(el=>el.addEventListener(el.tagName==='INPUT'?'input':'change',renderPowerCatalog));document.querySelectorAll('#ritualCatalogSearch,#ritualCatalogElement,#ritualCatalogCircle').forEach(el=>el.addEventListener(el.tagName==='INPUT'?'input':'change',renderRitualCatalog));
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.querySelector('#powerInfoModal')?.classList.contains('open')){event.preventDefault();closePowerInfo()}if(event.key==='Escape'&&document.querySelector('#ritualRulesModal')?.classList.contains('open')){event.preventDefault();closeRitualRules();return}if(event.key==='Escape'&&document.querySelector('#ritualInfoModal')?.classList.contains('open')){event.preventDefault();closeRitualInfo()}});
 updateTrails();['weapons','armor','powers','rituals'].forEach(id=>document.querySelector('#'+id).innerHTML='');Object.entries(d.lists||{}).forEach(([id,rows])=>{if(id==='inventory'){loadCaseItems(rows);return}let box=document.querySelector('#'+id);if(!box)return;let type={weapons:'weapon',armor:'armor',powers:'text',rituals:'ritual'}[id];(rows||[]).forEach(r=>addRow(id,type,r))});if(!d.lists?.inventory)loadCaseItems([]);reconcileInitialGrants();updateRitualSummary();refreshPortrait();loadClueBoardState(d.clues||{});calc()}
-function save(){localStorage.setItem('op-ficha-v13',JSON.stringify(collect()));toast()}function changed(){calc();clearTimeout(window.st);window.st=setTimeout(save,500)}function toast(message='Salvo neste dispositivo',duration=1100){let x=document.querySelector('#toast');x.textContent=message;x.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>x.classList.remove('show'),duration)}function exportData(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(collect(),null,2)],{type:'application/json'}));a.download=((document.querySelector('[data-k="name"]').value||'agente').replace(/\W+/g,'-')+'.json');a.click();URL.revokeObjectURL(a.href)}function resetAll(){if(confirm('Limpar todos os dados desta ficha?')){localStorage.removeItem('op-ficha-v13');location.reload()}}
+function save(auto=false){
+ localStorage.setItem('op-ficha-v13',JSON.stringify(collect()));
+ const badge=document.querySelector('#autoSaveBadge');
+ if(badge){
+   badge.textContent='✓ SALVO • SINCRONIZADO';
+   badge.style.borderColor='#667316';
+   clearTimeout(window.__autoSaveBadgeTimer);
+   window.__autoSaveBadgeTimer=setTimeout(()=>{badge.textContent='● AUTOSAVE • ONLINE';badge.style.borderColor='#576019'},1300);
+ }
+ toast(auto?'Salvo automaticamente':'Salvo neste dispositivo',auto?700:1100)
+}
+function changed(){
+ calc();
+ clearTimeout(window.st);
+ window.st=setTimeout(()=>save(true),180)
+}
+function toast(message='Salvo neste dispositivo',duration=1100){let x=document.querySelector('#toast');x.textContent=message;x.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>x.classList.remove('show'),duration)}function exportData(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(collect(),null,2)],{type:'application/json'}));a.download=((document.querySelector('[data-k="name"]').value||'agente').replace(/\W+/g,'-')+'.json');a.click();URL.revokeObjectURL(a.href)}function resetAll(){if(confirm('Limpar todos os dados desta ficha?')){localStorage.removeItem('op-ficha-v13');location.reload()}}
 document.querySelector('#import').addEventListener('change',async e=>{try{hydrate(JSON.parse(await e.target.files[0].text()));save()}catch{alert('Arquivo de ficha inválido.')}});
+/* Salvamento automático global */
+let __globalAutoSaveTimer=null;
+function scheduleGlobalAutoSave(delay=180){
+ clearTimeout(__globalAutoSaveTimer);
+ __globalAutoSaveTimer=setTimeout(()=>{
+   try{save(true)}catch{}
+ },delay);
+}
+document.addEventListener('input',e=>{
+ if(e.target.matches('input,select,textarea') && e.target.id!=='import')scheduleGlobalAutoSave();
+},true);
+document.addEventListener('change',e=>{
+ if(e.target.matches('input,select,textarea') && e.target.id!=='import')scheduleGlobalAutoSave(60);
+},true);
+document.addEventListener('click',e=>{
+ const button=e.target.closest('button');
+ if(!button)return;
+ if(button.closest('.tabs'))return;
+ setTimeout(()=>scheduleGlobalAutoSave(80),30);
+},true);
+window.addEventListener('pagehide',()=>{
+ try{
+   clearTimeout(window.st);
+   clearTimeout(__globalAutoSaveTimer);
+   localStorage.setItem('op-ficha-v13',JSON.stringify(collect()));
+ }catch{}
+});
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='hidden'){
+   try{
+     clearTimeout(window.st);
+     clearTimeout(__globalAutoSaveTimer);
+     localStorage.setItem('op-ficha-v13',JSON.stringify(collect()));
+   }catch{}
+ }
+});
+
 document.addEventListener('input',e=>{if(e.target.matches('[data-k="player"],[data-k="name"]'))refreshClueCurrentPlayerPreview()});
 function removeRitualCardByButton(btn){
  let card=btn?.closest('.ritual-card');
